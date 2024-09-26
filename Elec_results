@@ -1,0 +1,93 @@
+         Model Mean_Accuracy Drift_Count Batch most_important Model
+1       HDDM_A     0.6982657          10    10       nswprice    LR
+2       HDDM_W     0.6982657          10    10       nswprice    LR
+3        KSWIN     0.6982657          10    10       nswprice    LR
+4  PageHinkley     0.6982657          10    10       nswprice    LR
+5          DDM     0.6982657          10    10       nswprice    LR
+6         EDDM     0.6982657          10    10       nswprice    LR
+7          PDD     0.6740020           8    10       nswprice    LR
+8    Base Test     0.8153541           0    10       nswprice    LR
+9   Base Train     0.8199950           0    10       nswprice    LR
+10 batch sizes 12083.0000000        3021    10       nswprice    LR
+11      HDDM_A     0.6836141          20    20       nswprice    LR
+12      HDDM_W     0.6836141          20    20       nswprice    LR
+13       KSWIN     0.6836141          20    20       nswprice    LR
+14 PageHinkley     0.7341737          13    20       nswprice    LR
+15         DDM     0.6836141          20    20       nswprice    LR
+16        EDDM     0.6836141          20    20       nswprice    LR
+17         PDD     0.7349473           4    20       nswprice    LR
+18   Base Test     0.8042999           0    20       nswprice    LR
+19  Base Train     0.8081115           0    20       nswprice    LR
+20 batch sizes  7249.0000000        1813    20       nswprice    LR
+21      HDDM_A     0.7099317          30    30       nswprice    LR
+22      HDDM_W     0.7099317          30    30       nswprice    LR
+23       KSWIN     0.7099317          30    30       nswprice    LR
+24 PageHinkley     0.7390381          16    30       nswprice    LR
+25         DDM     0.7099317          30    30       nswprice    LR
+26        EDDM     0.7099317          30    30       nswprice    LR
+27         PDD     0.7401706          12    30       nswprice    LR
+28   Base Test     0.8155864           0    30       nswprice    LR
+29  Base Train     0.8188490           0    30       nswprice    LR
+30 batch sizes  5178.0000000        1295    30       nswprice    LR
+         Model Mean_Accuracy Drift_Count Batch most_important Model
+1       HDDM_A     0.7254673          10    10       nswprice    DT
+2       HDDM_W     0.7254673          10    10       nswprice    DT
+3        KSWIN     0.7254673          10    10       nswprice    DT
+4  PageHinkley     0.7214607           9    10       nswprice    DT
+5          DDM     0.7254673          10    10       nswprice    DT
+6         EDDM     0.7254673          10    10       nswprice    DT
+7          PDD     0.7252687           1    10       nswprice    DT
+8    Base Test     0.7954997           0    10       nswprice    DT
+9   Base Train     0.8263676           0    10       nswprice    DT
+10 batch sizes 12083.0000000        3021    10       nswprice    DT
+11      HDDM_A     0.7408734          20    20       nswprice    DT
+12      HDDM_W     0.7408734          20    20       nswprice    DT
+13       KSWIN     0.7408734          20    20       nswprice    DT
+14 PageHinkley     0.7417481          15    20       nswprice    DT
+15         DDM     0.7408734          20    20       nswprice    DT
+16        EDDM     0.7408734          20    20       nswprice    DT
+17         PDD     0.7391925           1    20       nswprice    DT
+18   Base Test     0.8649394           0    20       nswprice    DT
+19  Base Train     0.8238378           0    20       nswprice    DT
+20 batch sizes  7249.0000000        1813    20       nswprice    DT
+21      HDDM_A     0.7449803          30    30       nswprice    DT
+22      HDDM_W     0.7449803          30    30       nswprice    DT
+23       KSWIN     0.7449803          30    30       nswprice    DT
+24 PageHinkley     0.7502272          16    30       nswprice    DT
+25         DDM     0.7449803          30    30       nswprice    DT
+26        EDDM     0.7449803          30    30       nswprice    DT
+27         PDD     0.7428713           5    30       nswprice    DT
+28   Base Test     0.8024691           0    30       nswprice    DT
+29  Base Train     0.8315952           0    30       nswprice    DT
+30 batch sizes  5178.0000000        1295    30       nswprice    DT
+         Model Mean_Accuracy Drift_Count Batch most_important Model
+1       HDDM_A     0.7029608          10    10       nswprice    RF
+2       HDDM_W     0.7029608          10    10       nswprice    RF
+3        KSWIN     0.7029608          10    10       nswprice    RF
+4  PageHinkley     0.6992199           8    10       nswprice    RF
+5          DDM     0.7029608          10    10       nswprice    RF
+6         EDDM     0.7029608          10    10       nswprice    RF
+7          PDD     0.7093132           3    10       nswprice    RF
+8    Base Test     0.8107214           0    10       nswprice    RF
+9   Base Train     0.8424232           0    10       nswprice    RF
+10 batch sizes 12083.0000000        3021    10       nswprice    RF
+11      HDDM_A     0.7253404          20    20       nswprice    RF
+12      HDDM_W     0.7253404          20    20       nswprice    RF
+13       KSWIN     0.7253404          20    20       nswprice    RF
+14 PageHinkley     0.7130594          12    20       nswprice    RF
+15         DDM     0.7217098          15    20       nswprice    RF
+16        EDDM     0.7253404          20    20       nswprice    RF
+17         PDD     0.7311154           0    20       nswprice    RF
+18   Base Test     0.8142227           0    20       nswprice    RF
+19  Base Train     0.8366671           0    20       nswprice    RF
+20 batch sizes  7249.0000000        1813    20       nswprice    RF
+21      HDDM_A     0.7355544          30    30       nswprice    RF
+22      HDDM_W     0.7355544          30    30       nswprice    RF
+23       KSWIN     0.7355544          30    30       nswprice    RF
+24 PageHinkley     0.7358874          16    30       nswprice    RF
+25         DDM     0.7243771          17    30       nswprice    RF
+26        EDDM     0.7355544          30    30       nswprice    RF
+27         PDD     0.7393471           1    30       nswprice    RF
+28   Base Test     0.8009259           0    30       nswprice    RF
+29  Base Train     0.8472383           0    30       nswprice    RF
+30 batch sizes  5178.0000000        1295    30       nswprice    RF
