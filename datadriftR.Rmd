@@ -651,7 +651,7 @@ knitr::include_graphics("figures/rf_elec_10.png")
 For the RF model applied to the \texttt{Elec2} dataset, drift was detected in the $10$-th batch. In Figure~\ref{fig:rfelec10}, the \texttt{nswprice} variable, which is the most important variable, shows noticeable changes between $0$ and $0.1$. In this range, the contribution of \texttt{nswprice} to the model's predictions shifts, leading to drift detection by the PDD. These variations in \texttt{nswprice} highlight how its influence on the model differs in the $10$-th batch, potentially impacting the model’s performance.
 
 
-\subsubsection{\texttt{Friedman}}
+### \texttt{Friedman}
 
 The results for the \texttt{Friedman} dataset in Table~\ref{tab:exp_Friedman}, which pertains to a regression task, exhibit distinct performance patterns across various drift detection methods, models, and batch sizes. Focusing on the PDD method, it demonstrated a balanced approach in terms of both metric values and the number of detected drifts. Specifically, for the LR model, PDD achieved RMSE values of $2.8041$, $2.8073$, and $2.7998$ across $10$, $20$, and $30$ batches, respectively, while detecting $3$, $2$, and $1$ drifts. In the DT model, PDD maintained stable RMSE of $3.3014$, $3.2936$, and $3.2670$, with drift detections of $3$, $2$, and $2$ across the same batch sizes. Similarly, for the RF model, the RMSE values of the PDD method are $1.9066$, $1.9271$, and $1.9516$, detecting $4$, $9$, and $9$ drifts respectively. This consistent performance indicates that PDD effectively maintains model accuracy while controlling the number of drift detections, thereby reducing the likelihood of unnecessary drift alarms.
 
@@ -687,7 +687,7 @@ Across all methods and models, the most important variable consistently identifi
 In summary, the PDD method demonstrated a balanced effectiveness for the \texttt{Friedman} regression task by maintaining reasonable metric values and controlling the number of detected drifts across different batch sizes. While PDD offers a more conservative approach to drift detection, reducing the likelihood of false positives, it may be less sensitive compared to methods like KSWIN, which detects more drifts but carries a higher risk of false alarms. The PH method provides an intermediate level of sensitivity, offering a stable drift detection mechanism suitable for controlled environments. Additionally, the consistent identification of \texttt{variable\_4} as the most important variable across all models and batch sizes emphasizes its critical role in model performance, suggesting that adaptive variable selection strategies could further enhance drift detection and overall model reliability in dynamic data environments.
 
 
-\section{Conclusions}
+# Conclusions
 
 In this paper, we conducted six experiments across multiple real-life and synthetic datasets to compare the effectiveness of our proposed method PDD, and mostly used concept drift detection methods including HDDM-A, HDDM-W, KSWIN, PH, DDM, and EDDM. We focused on analyzing model accuracy, the number of detected drifts, and understanding the variable contributions during drift occurrences.
 
@@ -703,7 +703,7 @@ Comparatively, methods like KSWIN and EDDM exhibited higher sensitivity to conce
 
 An important observation across all datasets was the consistency in identifying key variables that contributed to model predictions and drift detection. For instance, attributes like \texttt{V2} in \texttt{SEA}, \texttt{nswprice} in \texttt{Elec2}, and \texttt{variable\_4} in the \texttt{Friedman} dataset were repeatedly identified as the most influential variables. This consistency emphasizes the importance of monitoring these key attributes, as their behavior significantly affects model performance during concept drift.
 
-\section{Discussion}
+# Discussion
 
 Except for the detection ability of our proposed method, it can provide explanations to understand the reason for predictive churn. After drift detection, re-training ML models can unpredictably change certain model predictions \citep{daniels_2024}. This may lead to unreliable conclusions about the model predictions. Fortunately, PDD can provide more detailed information about the relationship between the model and the data compared to other statistical methods in such situations. In this way, model users can understand the reason behind the drift. Similarly, users may request the deletion of their data regarding data privacy, and removing these relationships from any model trained on this data is a challenging problem. \cite{bourtoule_2021} developed a method to address this issue by partitioning and ordering the data. PDD can contribute to such problems in the literature.
 
@@ -713,19 +713,19 @@ On the other hand, the PDD method can work on binary classification or regressio
 
 In conclusion, PDD offers both advantages and disadvantages compared to traditional concept drift detection methods. The experiments demonstrated that PDD generally detected fewer, but more consistent drifts while maintaining similar accuracy rates compared to other tests. Additionally, PDD allows for a more detailed examination of the relationship between explanatory variables and the response variable in the model, providing valuable insights into how these relationships change during concept drift.
 
-\section{Further research}
+# Further research
 
 Reducing the computational cost of the PDD method, the \textit{compress then explain} \citep{hubert_2024} technique can be integrated. This technique compresses the data distribution when the number of observations is large and subsequently applies explainable methods more effectively. However, in cases where model training costs are high, it can be used in its current form. Additionally, when the cost of training the model is lower than the cost of generating PDPs, it can be used to monitor how the relationship between the response variable and explanatory variable changes when concept drift is detected in the model. Moreover, the PDD can be used in predictive churn and data privacy applications to make the changes explainable after re-training an ML model. 
 
 
-\subsection*{Acknowledgment}
+## Acknowledgment
 
 The work on this paper is financially supported by the Scientific and Technological Research Council
 of Turkiye under the 2210C National MSc Scholarship Program in the Priority Fields in Science and
 Technology grant no. 1649B022303919 and Eskisehir Technical University Scientific Research Projects
 Commission under grant no. 22LÖT175.
 
-\subsection*{Supplemantal materials}
+## Supplemantal materials
 
 The materials for reproducing the experiments performed and the dataset are
 accessible in the following repository: \url{https://github.com/ugurdar/datadrift\_RJournal}
