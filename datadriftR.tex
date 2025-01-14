@@ -1,5 +1,5 @@
 % !TeX root = RJwrapper.tex
-\title{ToOoOlTiPs: An R Package for Customizable Tooltips in Interactive Graphics}
+\title{datadriftR: An R Package for Concept Drift Detection in Predictive Models}
 
 
 \author{by Ugur Dar and Mustafa Cavus}
@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-Predictive models often face performance degradation due to evolving data distributions, a phenomenon known as data drift. Among its forms, concept drift---where the relationship between explanatory variables and the response variable changes---is particularly challenging to detect and adapt to. Traditional drift detection methods often rely on metrics such as accuracy or variable distributions, which may fail to capture subtle but significant conceptual changes. This paper introduces \CRANpkg{drifter}, an R package designed to detect concept drift, and proposes a novel method called Profile Drift Detection (PDD) that enables both drift detection and an enhanced understanding of the cause behind the drift by leveraging an explainable AI tool---Partial Dependence Profiles (PDPs). The PDD method, central to the package, quantifies changes in PDPs through novel metrics, ensuring sensitivity to shifts in the data stream without excessive computational costs. This approach aligns with MLOps practices, emphasizing model monitoring and adaptive retraining in dynamic environments. The experiments across synthetic and real-world datasets demonstrate that PDD outperforms existing methods by maintaining high accuracy while effectively balancing sensitivity and stability. The results highlight its capability to adaptively retrain models in dynamic environments, making it a robust tool for real-time applications. The paper concludes by discussing the advantages, limitations, and future extensions of the package for broader use cases.
+Predictive models often degrade due to data drift, particularly concept drift, where the relationship between variables and the response changes. Traditional detection methods based on accuracy or variable distributions often miss subtle concept drifts. This paper presents \CRANpkg{drifter}, an R package for detecting concept drift, and introduces a novel method, Profile Drift Detection (PDD). PDD leverages explainable artificial intelligence tool Partial Dependence Profiles (PDPs) to detect and explain drift causes. It quantifies PDP changes using innovative metrics, balancing sensitivity and computational efficiency. Aligned with MLOps practices, this approach emphasizes model monitoring and adaptive retraining in dynamic environments. Experiments on synthetic and real-world datasets show that PDD outperforms existing methods, maintaining high accuracy while ensuring stability. The results demonstrate its robustness for real-time applications and ability to adapt models effectively. The paper discusses its advantages, limitations, and potential extensions for broader applications.
 }
 
 \hypertarget{introduction}{%
@@ -26,15 +26,15 @@ The stationary and unbiased distribution assumption in predictive models refers 
 
 One of the problems that causes inconsistency in behavior is called data drift whose types are also classified into three categories: (1) Covariate drift, (2) Label drift, and (3) Concept drift. Data drift may manifest in various forms such as increased electricity consumption due to significant life changes like pandemic-related lockdowns \citep{fumagalli_et_al_2023}, changes in airline customer behaviors \citep{garg_et_al_2021}, and shifts in supply chain planning due to evolving consumer behavior \citep{kulinski_and_inouye_2023}. It is essential to detect these drifts on time to take precautions about the model.
 
-Various methods are used to detect data drifts, categorized into three groups: statistical, sequential analysis-based, and window-based methods. For detecting concept drift, which is characterized as a change in the relationship between explanatory variables and the response variable, there are instances where current methods in the literature fall short \citep{demvsar_and_bosnic_2018, duckworth_et_al_2021, rahmani_et_al_2023}. This limitation highlights the need for MLOps, which integrates model monitoring and adaptation strategies to address data drift effectively. MLOps practices focus on maintaining model performance and managing change, enabling predictive models to adapt in real time to dynamic data environments. One particularly challenging scenario is when concept drift occurs without changes in performance and distribution metrics, rendering traditional detection methods unreliable. In response to this situation, some alternative approaches have been proposed where the methods used in the literature fail to detect concept drift adequately.
+Various methods are used to detect data drifts, categorized into three groups: statistical, sequential analysis-based, and window-based methods. For detecting concept drift, which is characterized as a change in the relationship between explanatory variables and the response variable, there are instances where current methods in the literature fall short \citep{demvsar_and_bosnic_2018, duckworth_et_al_2021, rahmani_et_al_2023}. This limitation highlights the need for MLOps, which integrates model monitoring and adaptation strategies to address data drift effectively. MLOps practices focus on maintaining model performance and managing change, enabling predictive models to adapt in real-time to dynamic data environments. One particularly challenging scenario is when concept drift occurs without changes in performance and distribution metrics, rendering traditional detection methods unreliable. In response to this situation, some alternative approaches have been proposed where the methods used in the literature fail to detect concept drift adequately.
 
 Moreover, \cite{demvsar_and_bosnic_2018} emphasized that current data drift detection methods rely solely on performance and distribution metrics, which are insufficient to understand the underlying cause of changes in the model. They developed an alternative method using the local interpretable model-agnostic explanations \citep{strumbelj_et_al_2009} and demonstrated through comparative studies that it offers better detection performance than existing methods. \cite{duckworth_et_al_2021} used the normalized SHAP method \citep{lundberg_2017} to detect data drifts in emergency department length-of-stay prediction models following COVID-19, noting that traditional methods failed to reflect changes in the model's information utilization. \cite{muschalik_et_al_2022} developed an approach to detect concept drifts using permutation-based variable importance \citep{breiman2001random} values. However, they highlighted the need to address complexity, effectiveness, sensitivity, and explainability for their approach to be effectively applied. \cite{rahmani_et_al_2023} explored data drifts observed in models using the SHAP method for calculating the variable importance. Their most significant challenge was the inability to distinguish between covariate and concept drift, primarily due to the inappropriate use of XAI tools. While SHAP provides sufficient information on variable importance, it fails to detect the relationship between explanatory and response variables. \cite{mougan_and_nielsen_2023} emphasized that statistical tests operate solely based on the data distribution and may lead to false alarms. Their study developed an explainable concept drift detection method for regression problems using non-parametric bootstrap uncertainty estimation and SHAP values. \cite{mattos_et_al_2021} highlighted a lack of studies focusing on the causes and explainability of concept drift detection methods. They developed a technique based on a decision tree model to detect and visualize concept drift by identifying changes in the regions partitioned by the decision tree. However, they discussed the limitations of their approach, such as the cost of continuously training the model and the feasibility of tracking the limited number of variables selected by the model. Additionally, when non-tree-based models are used, the method might evaluate different relationships from those in the decision process, making it more suitable as a tree-based method. \cite{muschalik_et_al_2022} developed an approach for detecting concept drift using permutation-based variable importance values. Similarly, \cite{fumagalli_et_al_2023} developed an incremental permutation-based variable importance method for use in incremental models. However, they emphasized that for their approach to be effectively applied, it is necessary to address shortcomings in complexity, efficiency, sensitivity, and explainability.
 
-There is a limited body of literature on data drift detection methods that employ XAI tools. Even when these methods are used, they often face challenges in some data drifts, or they rely on high computational cost methods such as permutation-based variable importance or SHAP. These approaches are not always practical for detecting changes in the relationship between the response variable and explanatory variables. Therefore, this paper introduces a solution based on the partial dependence profile (PDP), which is an XAI tool used to uncover the relationship between the response variable and explanatory variables. Because it is a versatile tool that is not only used to examine the relationship between the response variable and explanatory variables but also used in hyper-parameter optimization \citep{moosbauer_et_al_2021} and for determining variable importance and identifying interactions between variables \citep{inglis_et_al_2022}.
+There is a limited body of literature on data drift detection methods that employ XAI tools. Even when these methods are used, they often face challenges in some data drifts or rely on high computational cost methods such as permutation-based variable importance or SHAP. These approaches are not always practical for detecting changes in the relationship between the response variable and explanatory variables. Therefore, this paper introduces a solution based on the partial dependence profile (PDP), an XAI tool used to uncover the relationship between the response variable and explanatory variables because it is a versatile tool that is not only used to examine the relationship between the response variable and explanatory variables but also used in hyper-parameter optimization \citep{moosbauer_et_al_2021} and for determining variable importance and identifying interactions between variables \citep{inglis_et_al_2022}.
 
-In addition to the scientific literature, software, and technologies that include data drift detection methods that are complex to implement are quite limited. Although there are basic R tools such as the \CRANpkg{vetiver} framework and \CRANpkg{pins} for monitoring model metrics, they do not provide specific instruments for data drift monitoring. On the other hand, \CRANpkg{drifter} offers useful functions for detecting data drift based on distances between distribution, residuals, and PDPs of two models, but it is limited to comparing two trained models and is not suitable for streaming data. Meanwhile, \CRANpkg{harbinger} supplies some functions to detect anomalies, drifts, and change points but is focused on time series data. While R and CRAN are immature in terms of model monitoring, there are many technologies and Python libraries available such as EvidentlyAI\footnote{\href{https://www.evidentlyai.com/}{https://www.evidentlyai.com/}}, SeldonIO\footnote{\href{https://www.seldon.io/}{https://www.seldon.io/}}, NannyML\footnote{\href{https://nannyml.readthedocs.io/en/stable/index.html}{https://nannyml.readthedocs.io/en/stable/index.html}}, Frouros\footnote{\href{https://frouros.readthedocs.io/en/latest/}{https://frouros.readthedocs.io/en/latest/}}, River\footnote{\href{https://riverml.xyz/0.8.0/examples/concept-drift-detection/}{https://riverml.xyz/0.8.0/examples/concept-drift-detection/}}.
+In addition to the scientific literature, software, and technologies that include data drift detection methods that are complex to implement are quite limited. Although there are basic R tools such as the \CRANpkg{vetiver} framework and \CRANpkg{pins} for monitoring model metrics, they do not provide specific instruments for data drift monitoring. On the other hand, \CRANpkg{drifter} offers useful functions for detecting data drift based on distances between distribution, residuals, and PDPs of two models. Still it is limited to comparing two trained models and unsuitable for streaming data. Meanwhile, \CRANpkg{harbinger} supplies some functions to detect anomalies, drifts, and change points but is focused on time series data. While R and CRAN are immature in terms of model monitoring, there are many technologies and Python libraries available such as EvidentlyAI\footnote{\href{https://www.evidentlyai.com/}{https://www.evidentlyai.com/}}, SeldonIO\footnote{\href{https://www.seldon.io/}{https://www.seldon.io/}}, NannyML\footnote{\href{https://nannyml.readthedocs.io/en/stable/index.html}{https://nannyml.readthedocs.io/en/stable/index.html}}, Frouros\footnote{\href{https://frouros.readthedocs.io/en/latest/}{https://frouros.readthedocs.io/en/latest/}}, River\footnote{\href{https://riverml.xyz/0.8.0/examples/concept-drift-detection/}{https://riverml.xyz/0.8.0/examples/concept-drift-detection/}}.
 
-To address these gaps, we propose a new concept drift detection method based on XAI and the \CRANpkg{datadriftR} package, leveraging PDP to monitor data drifts in model development. The key result of our study is the efficiency of this method in concept drift detection compared to existing tools and it provides explanations to understand the underlying cause of changes in the model. To the best of our knowledge, \CRANpkg{datadriftR} is the first package that consists of an explainable and the other mostly used drift detection method. The rest of the paper is organized as: the following section provides the preliminaries about the data drifts. Then, the concept drift detection methods considered in the introduced package, are given. The performance of these methods is compared in terms of synthetic and real-world datasets. Finally, we conclude with a summary of future works.
+To address these gaps, we propose a new concept drift detection method based on XAI and the \CRANpkg{datadriftR} package, leveraging PDP to monitor data drifts in model development. The key result of our study is the efficiency of this method in concept drift detection compared to existing tools. It provides explanations to understand the underlying cause of changes in the model. To the best of our knowledge, \CRANpkg{datadriftR} is the first package that consists of an explainable and the other mostly used drift detection method. The rest of the paper is organized as: the following section provides the preliminaries about the data drifts. Then, the concept drift detection methods considered in the introduced package, are given. The performance of these methods is compared in terms of synthetic and real-world datasets. Finally, we conclude with a summary of future works.
 
 \hypertarget{preliminaries}{%
 \section{Preliminaries}\label{preliminaries}}
@@ -347,39 +347,40 @@ Table\textasciitilde{}\ref{tab:exp_SEA} examines the performance of several drif
 \begin{table}[H]
     \centering
     \small
-    \caption{The results of experiments  on the \texttt{SEA} dataset}
+    \caption{The results of experiments on the \texttt{SEA} dataset}
     \label{tab:exp_SEA}
     \begin{tabular}{llcccccc}\toprule
         && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
         && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
         \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
         HDDM-A & LR & 0.8306 & 1 & 0.8462 & 2 & 0.8447 & 2 \\
-        & DT & 0.8318 & 2 & 0.8400 & 2 & 0.8264 & 1 \\
+        & DT & 0.8318 & 2 & 0.8400 & 2 & 0.8358 & 2 \\
         & RF & 0.8264 & 1 & 0.8432 & 2 & 0.8384 & 2 \\
         \midrule
         HDDM-W & LR & 0.8279 & 3 & 0.8443 & 2 & 0.8407 & 2 \\
         & DT & 0.8248 & 3 & 0.8389 & 2 & 0.8354 & 2 \\
-        & RF & 0.8258 & 3 & 0.8412 & 4 & 0.8360 & 3 \\
+        & RF & 0.8257 & 3 & 0.8412 & 4 & 0.8362 & 3 \\
         \midrule
         KSWIN & LR & 0.8292 & 10 & 0.8455 & 20 & 0.8428 & 27 \\
         & DT & 0.8294 & 10 & 0.8440 & 20 & 0.8376 & 29 \\
-        & RF & 0.8267 & 10 & 0.8425 & 20 & 0.8384 & 29 \\
+        & RF & 0.8268 & 10 & 0.8421 & 20 & 0.8387 & 29 \\
         \midrule
         PH & LR & 0.8337 & 1 & 0.8447 & 3 & 0.8437 & 3 \\
         & DT & 0.8307 & 1 & 0.8424 & 3 & 0.8368 & 3 \\
-        & RF & 0.8298 & 1 & 0.8412 & 3 & 0.8393 & 3 \\
+        & RF & 0.8298 & 1 & 0.8417 & 3 & 0.8393 & 3 \\
         \midrule
         DDM & LR & 0.8284 & 0 & 0.8460 & 3 & 0.8426 & 5 \\
         & DT & 0.8267 & 0 & 0.8432 & 1 & 0.8356 & 3 \\
-        & RF & 0.8267 & 0 & 0.8429 & 3 & 0.8379 & 3 \\
+        & RF & 0.8267 & 0 & 0.8430 & 3 & 0.8379 & 3 \\
         \midrule
-        EDDM & LR & 0.8292 & 10 & 0.8455 & 20 & 0.8340 & 12 \\
+        EDDM & LR & 0.8292 & 10 & 0.8455 & 20 & 0.8381 & 12 \\
         & DT & 0.8291 & 9 & 0.8435 & 18 & 0.8340 & 8 \\
-        & RF & 0.8267 & 10 & 0.8426 & 19 & 0.8392 & 13 \\
+        & RF & 0.8268 & 10 & 0.8423 & 19 & 0.8390 & 13 \\
         \midrule
-        PDD & LR & 0.8309 & 5 & 0.8464 & 18 & 0.8372 & 12 \\
+        PDD & LR & 0.8309 & 5 & 0.8464 & 18 & 0.8370 & 1 \\
         & DT & 0.8230 & 1 & 0.8405 & 3 & 0.8349 & 8 \\
-        & RF & 0.8264 & 4 & 0.8429 & 4 & 0.8372 & 12 \\\bottomrule
+        & RF & 0.8283 & 5 & 0.8427 & 8 & 0.8377 & 18 \\
+        \midrule
     \end{tabular}
 \end{table}
 
@@ -430,7 +431,7 @@ The results in Table\textasciitilde{}\ref{tab:exp_Hyperplane} demonstrate that, 
 \begin{table}[H]
     \centering
     \small
-    \caption{The results of experiments for \texttt{Hyperplane} dataset}
+    \caption{The results of experiments on the \texttt{Hyperplane} dataset}
     \label{tab:exp_Hyperplane}
     \begin{tabular}{llcccccc}\toprule
         && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
@@ -442,11 +443,11 @@ The results in Table\textasciitilde{}\ref{tab:exp_Hyperplane} demonstrate that, 
         \midrule
         HDDM-W & LR & 0.8377 & 1 & 0.8456 & 3 & 0.8152 & 4 \\
         & DT & 0.8398 & 0 & 0.7752 & 2 & 0.7316 & 4 \\
-        & RF & 0.7794 & 2 & 0.7615 & 3 & 0.7528 & 6 \\
+        & RF & 0.7794 & 2 & 0.7615 & 3 & 0.7536 & 6 \\
         \midrule
         KSWIN & LR & 0.8639 & 9 & 0.8458 & 13 & 0.8285 & 18 \\
         & DT & 0.8520 & 9 & 0.8429 & 17 & 0.8162 & 19 \\
-        & RF & 0.8208 & 10 & 0.8123 & 16 & 0.7943 & 22 \\
+        & RF & 0.8219 & 10 & 0.8144 & 17 & 0.7948 & 22 \\
         \midrule
         PH & LR & 0.8648 & 0 & 0.8187 & 1 & 0.7455 & 2 \\
         & DT & 0.8398 & 0 & 0.7014 & 1 & 0.6929 & 1 \\
@@ -454,15 +455,16 @@ The results in Table\textasciitilde{}\ref{tab:exp_Hyperplane} demonstrate that, 
         \midrule
         DDM & LR & 0.8648 & 0 & 0.8071 & 1 & 0.7455 & 2 \\
         & DT & 0.8398 & 0 & 0.7014 & 1 & 0.7283 & 3 \\
-        & RF & 0.7834 & 0 & 0.7297 & 3 & 0.6267 & 1 \\
+        & RF & 0.7834 & 0 & 0.7290 & 3 & 0.6267 & 1 \\
         \midrule
         EDDM & LR & 0.8648 & 0 & 0.8485 & 13 & 0.8348 & 5 \\
         & DT & 0.8496 & 10 & 0.8562 & 15 & 0.8379 & 11 \\
-        & RF & 0.7834 & 0 & 0.8066 & 16 & 0.7481 & 5 \\
+        & RF & 0.7834 & 0 & 0.8072 & 16 & 0.7957 & 24 \\
         \midrule
         PDD & LR & 0.8648 & 0 & 0.6469 & 1 & 0.5219 & 0 \\
         & DT & 0.8435 & 1 & 0.8326 & 15 & 0.4924 & 1 \\
-        & RF & 0.7831 & 1 & 0.7324 & 4 & 0.5099 & 0 \\\bottomrule
+        & RF & 0.7831 & 1 & 0.7322 & 4 & 0.5099 & 0 \\
+        \midrule
     \end{tabular}
 \end{table}
 
@@ -491,31 +493,32 @@ The results for the \texttt{NOAA} dataset in Table\textasciitilde{}\ref{tab:exp_
         \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
         HDDM-A & LR & 0.7736 & 5 & 0.7696 & 7 & 0.7777 & 3 \\
         & DT & 0.7293 & 8 & 0.7435 & 9 & 0.7440 & 8 \\
-        & RF & 0.7803 & 1 & 0.7783 & 4 & 0.7766 & 3 \\
+        & RF & 0.7790 & 0 & 0.7783 & 4 & 0.7780 & 2 \\
         \midrule
         HDDM-W & LR & 0.7736 & 7 & 0.7712 & 12 & 0.7799 & 12 \\
         & DT & 0.7385 & 10 & 0.7345 & 16 & 0.7385 & 23 \\
-        & RF & 0.7868 & 4 & 0.7835 & 10 & 0.7821 & 9 \\
+        & RF & 0.7883 & 4 & 0.7835 & 10 & 0.7826 & 9 \\
         \midrule
         KSWIN & LR & 0.7755 & 10 & 0.7755 & 20 & 0.7788 & 27 \\
         & DT & 0.7385 & 10 & 0.7334 & 20 & 0.7437 & 29 \\
-        & RF & 0.7899 & 10 & 0.7913 & 19 & 0.7940 & 28 \\
+        & RF & 0.7916 & 10 & 0.7916 & 19 & 0.7945 & 29 \\
         \midrule
         PH & LR & 0.7707 & 3 & 0.7680 & 3 & 0.7792 & 3 \\
         & DT & 0.7402 & 2 & 0.7387 & 2 & 0.7276 & 2 \\
-        & RF & 0.7836 & 2 & 0.7791 & 3 & 0.7772 & 3 \\
+        & RF & 0.7869 & 3 & 0.7798 & 3 & 0.7772 & 3 \\
         \midrule
         DDM & LR & 0.7716 & 4 & 0.7746 & 10 & 0.7715 & 10 \\
         & DT & 0.7422 & 3 & 0.7334 & 20 & 0.7398 & 21 \\
-        & RF & 0.7803 & 1 & 0.7905 & 12 & 0.7832 & 11 \\
+        & RF & 0.7818 & 1 & 0.7914 & 20 & 0.7831 & 8 \\
         \midrule
         EDDM & LR & 0.7755 & 10 & 0.7755 & 20 & 0.7780 & 30 \\
         & DT & 0.7385 & 10 & 0.7334 & 20 & 0.7406 & 30 \\
-        & RF & 0.7899 & 10 & 0.7926 & 20 & 0.7951 & 30 \\
+        & RF & 0.7916 & 10 & 0.7914 & 20 & 0.7940 & 30 \\
         \midrule
         PDD & LR & 0.7649 & 0 & 0.7694 & 2 & 0.7708 & 0 \\
         & DT & 0.7264 & 2 & 0.7403 & 0 & 0.7352 & 3 \\
-        & RF & 0.7880 & 7 & 0.7676 & 0 & 0.7886 & 16 \\\bottomrule
+        & RF & 0.7881 & 5 & 0.7676 & 0 & 0.7913 & 22 \\
+        \midrule
     \end{tabular}
 \end{table}
 
@@ -544,31 +547,32 @@ The results for the \texttt{Ozone} dataset demonstrate varied performances acros
         \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
         HDDM-A & LR & 0.9294 & 0 & 0.8942 & 2 & 0.8116 & 0 \\
         & DT & 0.9487 & 0 & 0.9101 & 1 & 0.9036 & 2 \\
-        & RF & 0.9497 & 0 & 0.9427 & 1 & 0.9374 & 0 \\
+        & RF & 0.9508 & 0 & 0.9427 & 1 & 0.9374 & 0 \\
         \midrule
         HDDM-W & LR & 0.9294 & 0 & 0.8907 & 1 & 0.8526 & 1 \\
         & DT & 0.9487 & 0 & 0.9101 & 1 & 0.9122 & 2 \\
-        & RF & 0.9519 & 1 & 0.9427 & 1 & 0.9401 & 1 \\
+        & RF & 0.9508 & 0 & 0.9427 & 1 & 0.9401 & 1 \\
         \midrule
         KSWIN & LR & 0.9396 & 3 & 0.9164 & 2 & 0.9144 & 5 \\
         & DT & 0.9444 & 3 & 0.9242 & 4 & 0.9099 & 5 \\
-        & RF & 0.9519 & 1 & 0.9383 & 4 & 0.9437 & 3 \\
+        & RF & 0.9529 & 1 & 0.9383 & 4 & 0.9437 & 3 \\
         \midrule
         PH & LR & 0.9294 & 0 & 0.8502 & 0 & 0.8116 & 0 \\
         & DT & 0.9487 & 0 & 0.8911 & 0 & 0.8725 & 0 \\
-        & RF & 0.9497 & 0 & 0.9422 & 0 & 0.9374 & 0 \\
+        & RF & 0.9508 & 0 & 0.9422 & 0 & 0.9374 & 0 \\
         \midrule
         DDM & LR & 0.9406 & 4 & 0.9155 & 6 & 0.8706 & 2 \\
         & DT & 0.9358 & 7 & 0.9301 & 6 & 0.9329 & 4 \\
-        & RF & 0.9503 & 2 & 0.9417 & 2 & 0.9437 & 3 \\
+        & RF & 0.9513 & 2 & 0.9427 & 2 & 0.9437 & 3 \\
         \midrule
         EDDM & LR & 0.9396 & 2 & 0.9183 & 4 & 0.8842 & 6 \\
         & DT & 0.9412 & 2 & 0.9164 & 4 & 0.9185 & 5 \\
-        & RF & 0.9513 & 2 & 0.9441 & 3 & 0.9437 & 3 \\
+        & RF & 0.9524 & 2 & 0.9441 & 3 & 0.9437 & 3 \\
         \midrule
         PDD & LR & 0.9353 & 1 & 0.8984 & 2 & 0.8724 & 2 \\
-        & DT & 0.9449 & 1 & 0.8915 & 1 & 0.9198 & 10 \\
-        & RF & 0.9497 & 2 & 0.9422 & 0 & 0.9455 & 12 \\\bottomrule
+        & DT & 0.9487 & 0 & 0.8915 & 1 & 0.9140 & 10 \\
+        & RF & 0.9508 & 5 & 0.9422 & 0 & 0.9455 & 12 \\
+        \midrule
     \end{tabular}
 \end{table}
 
@@ -600,32 +604,33 @@ The results for the \texttt{Elec2} dataset reveal distinct performance patterns 
         && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
         \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
         HDDM-A & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
+        & DT & 0.7255 & 10 & 0.7409 & 20 & 0.7450 & 30 \\
+        & RF & 0.7029 & 10 & 0.7243 & 20 & 0.7374 & 30 \\
         \midrule
         HDDM-W & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
+        & DT & 0.7255 & 10 & 0.7409 & 20 & 0.7450 & 30 \\
+        & RF & 0.7029 & 10 & 0.7243 & 20 & 0.7374 & 30 \\
         \midrule
         KSWIN & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
+        & DT & 0.7255 & 10 & 0.7409 & 20 & 0.7450 & 30 \\
+        & RF & 0.7029 & 10 & 0.7243 & 20 & 0.7374 & 30 \\
         \midrule
-        PH & LR & 0.7215 & 9 & 0.7342 & 13 & 0.7390 & 16 \\
-        & DT & 0.7342 & 9 & 0.7417 & 15 & 0.7502 & 16 \\
-        & RF & 0.6992 & 8 & 0.7131 & 12 & 0.7359 & 16 \\
+        PH & LR & 0.6983 & 10 & 0.7342 & 13 & 0.7390 & 16 \\
+        & DT & 0.7215 & 9 & 0.7417 & 15 & 0.7502 & 16 \\
+        & RF & 0.6992 & 8 & 0.7103 & 11 & 0.7368 & 16 \\
         \midrule
         DDM & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
+        & DT & 0.7255 & 10 & 0.7409 & 20 & 0.7450 & 30 \\
+        & RF & 0.7029 & 10 & 0.7250 & 16 & 0.7253 & 17 \\
         \midrule
-        EDDM & LR & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
+        EDDM & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
+        & DT & 0.7255 & 10 & 0.7409 & 20 & 0.7450 & 30 \\
+        & RF & 0.7029 & 10 & 0.7243 & 20 & 0.7374 & 30 \\
         \midrule
         PDD & LR & 0.6740 & 8 & 0.7349 & 4 & 0.7402 & 12 \\
         & DT & 0.7253 & 1 & 0.7392 & 1 & 0.7429 & 5 \\
-        & RF & 0.7093 & 3 & 0.7311 & 0 & 0.7393 & 1 \\\bottomrule
+        & RF & 0.7093 & 3 & 0.7311 & 0 & 0.7449 & 3 \\
+        \midrule
     \end{tabular}
 \end{table}
 
@@ -663,18 +668,19 @@ The results for the \texttt{Friedman} dataset in Table\textasciitilde{}\ref{tab:
     \begin{tabular}{llcccccc}\toprule
         && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
         && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{RMSE} & \textbf{\#drifts} & \textbf{RMSE} & \textbf{\#drifts} & \textbf{RMSE} & \textbf{\#drifts} \\\midrule
+        \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
         KSWIN & LR & 2.8029 & 10 & 2.8007 & 19 & 2.7906 & 30 \\
         & DT & 3.2977 & 10 & 3.2765 & 19 & 3.2921 & 23 \\
-        & RF & 1.9154 & 10 & 1.9264 & 20 & 1.9445 & 24 \\
+        & RF & 1.9021 & 10 & 1.9280 & 19 & 1.9320 & 26 \\
         \midrule
         PH & LR & 2.8023 & 5 & 2.7974 & 10 & 2.7812 & 9 \\
         & DT & 3.3254 & 9 & 3.2813 & 16 & 3.2752 & 16 \\
-        & RF & 1.9631 & 3 & 2.0153 & 5 & 2.0399 & 6 \\
+        & RF & 1.9613 & 2 & 2.0566 & 4 & 2.0115 & 7 \\
         \midrule
         PDD & LR & 2.8041 & 3 & 2.8073 & 2 & 2.7998 & 1 \\
         & DT & 3.3014 & 3 & 3.2936 & 2 & 3.2670 & 2 \\
-        & RF & 1.9066 & 4 & 1.9271 & 9 & 1.9516 & 9 \\\bottomrule
+        & RF & 1.9887 & 7 & 1.8811 & 4 & 1.9355 & 11 \\
+        \midrule
     \end{tabular}
 \end{table}
 
@@ -732,6 +738,99 @@ Commission under grant no. 22LÖT175.
 
 The materials for reproducing the experiments performed and the dataset are
 accessible in the following repository: \url{https://github.com/ugurdar/datadrift\_RJournal}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{The number of observations in the batches}
+    \label{tab:batch_number}
+    \begin{tabular}{lrrrrrr}\toprule
+                & \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){2-7}
+                & \multicolumn{2}{c}{\textbf{10}} & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){2-7}
+        \textbf{Dataset} & \textbf{train} & \textbf{test} & \textbf{train} & \textbf{test} & \textbf{train} & \textbf{test} \\\midrule
+        \texttt{SEA} & 13332 & 3334 & 8000 & 2000 & 5713 & 1429 \\
+        \texttt{Hyperplane} & 5332 & 1334 & 3200 & 800 & 2285 & 572 \\
+        \texttt{NOAA} & 4842 & 1211 & 2904 & 727 & 2075 & 519 \\
+        \texttt{Ozone} & 675 & 169 & 404 & 102 & 289 & 73 \\
+        \texttt{Elec2} & 12083 & 3021 & 7249 & 1813 & 5178 & 1295 \\
+        \texttt{Friedman} & 5332 & 1334 & 3200 & 800 & 2285 & 572 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{The most important variables in the batches}
+    \label{tab:vip_batch}
+    \begin{tabular}{llccc}\toprule
+                            &       & \multicolumn{3}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-5}
+        \textbf{Dataset}    & \textbf{Model} & \textbf{10}                    & \textbf{20}                    & \textbf{30} \\\midrule
+        \texttt{SEA} & LR & \texttt{V2} & \texttt{V2} & \texttt{V2} \\
+                            & DT & \texttt{V1} & \texttt{V1} & \texttt{V1} \\
+                            & RF & \texttt{V2} & \texttt{V2} & \texttt{V2} \\
+        \midrule
+        \texttt{Hyperplane} & LR & \texttt{feature\_1} & \texttt{feature\_1} & \texttt{feature\_1} \\
+                            & DT & \texttt{feature\_1} & \texttt{feature\_1} & \texttt{feature\_2} \\
+                            & RF & \texttt{feature\_1} & \texttt{feature\_1} & \texttt{feature\_1} \\
+        \midrule
+        \texttt{NOAA} & LR & \texttt{attribute1} & \texttt{attribute4} & \texttt{attribute1} \\
+                            & DT & \texttt{attribute2} & \texttt{attribute2} & \texttt{attribute2} \\
+                            & RF & \texttt{attribute2} & \texttt{attribute4} & \texttt{attribute2} \\
+        \midrule
+        \texttt{Ozone} & LR & \texttt{V26} & \texttt{V52} & \texttt{V52} \\
+                            & DT & \texttt{V31} & \texttt{V36} & \texttt{V36} \\
+                            & RF & \texttt{V56} & \texttt{V61} & \texttt{V61} \\
+        \midrule
+        \texttt{Elec2} & LR & \texttt{nswprice} & \texttt{nswprice} & \texttt{nswprice} \\
+                            & DT & \texttt{nswprice} & \texttt{nswprice} & \texttt{nswprice} \\
+                            & RF & \texttt{nswprice} & \texttt{nswprice} & \texttt{nswprice} \\
+        \midrule
+        \texttt{Friedman} & LR & \texttt{feature\_4} & \texttt{feature\_4} & \texttt{feature\_4} \\
+                            & DT & \texttt{feature\_4} & \texttt{feature\_4} & \texttt{feature\_4} \\
+                            & RF & \texttt{feature\_4} & \texttt{feature\_4} & \texttt{feature\_4} \\
+        \midrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \small
+    \caption{The accuracies of the models in the batches}
+    \label{tab:acc_batch}
+    \begin{tabular}{llcccccc}\toprule
+    & & \multicolumn{6}{c}{\textbf{\#batch}}\\
+    \cmidrule(lr){3-8}
+    & & \multicolumn{2}{c}{\textbf{10}} & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\
+    \cmidrule(lr){3-8}
+    \textbf{Dataset} & \textbf{Model} & \textbf{test} & \textbf{train} & \textbf{test} & \textbf{train} & \textbf{test} & \textbf{train} \\
+    \midrule
+    \texttt{SEA} & LR & 0.8579 & 0.8966 & 0.8946 & 0.9032 & 0.9007 & 0.9057 \\
+                          & DT & 0.8576 & 0.8801 & 0.8696 & 0.8850 & 0.8797 & 0.8850 \\
+                          & RF & 0.8537 & 0.9991 & 0.8896 & 0.9989 & 0.9007 & 0.9991 \\
+    \midrule
+    \texttt{Hyperplane} & LR & 0.6165 & 0.7320 & 0.6717 & 0.7122 & 0.5113 & 0.7580 \\
+                          & DT & 0.7079 & 0.7406 & 0.7266 & 0.7094 & 0.4276 & 0.7575 \\
+                          & RF & 0.6524 & 0.9992 & 0.6692 & 0.9984 & 0.4799 & 0.9978 \\
+    \midrule
+    \texttt{NOAA} & LR & 0.7748 & 0.7999 & 0.8118 & 0.8041 & 0.8173 & 0.8014 \\
+                          & DT & 0.7500 & 0.7881 & 0.7734 & 0.7996 & 0.7808 & 0.7990 \\
+                          & RF & 0.7723 & 0.9996 & 0.8338 & 0.9997 & 0.8154 & 0.9995 \\
+    \midrule
+    \texttt{Ozone} & LR & 0.9647 & 0.9526 & 0.8155 & 1.0000 & 0.9054 & 1.0000 \\
+                          & DT & 0.9882 & 0.9511 & 0.8544 & 0.9554 & 0.9730 & 0.9308 \\
+                          & RF & 0.9941 & 1.0000 & 0.9806 & 1.0000 & 1.0000 & 1.0000 \\
+    \midrule
+    \texttt{Elec2} & LR & 0.8154 & 0.8200 & 0.8043 & 0.8081 & 0.8156 & 0.8188 \\
+                          & DT & 0.7955 & 0.8264 & 0.8649 & 0.8238 & 0.8025 & 0.8316 \\
+                          & RF & 0.8107 & 0.8424 & 0.8142 & 0.8367 & 0.8040 & 0.8418 \\
+    \midrule
+    \texttt{Friedman} & LR & 2.6432 & 2.5926 & 2.5591 & 2.5579 & 2.5958 & 2.5463 \\
+                          & DT & 3.0254 & 2.9843 & 3.1574 & 2.9204 & 3.0400 & 2.9744 \\
+                          & RF & 1.6395 & 0.7275 & 1.7751 & 0.7659 & 1.7454 & 0.8102 \\
+    \midrule
+    \end{tabular}
+\end{table}
 
 \hypertarget{references}{%
 \section{References}\label{references}}

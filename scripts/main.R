@@ -1,15 +1,16 @@
+library(foreign)
 
 # Elec
 ## Logistic
 rm(list=ls())
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","elec",".arff"))
+data <- read.arff(paste0("data/","elec",".arff"))
 data$class <- ifelse(data$class =="UP",1,0)
 data$class <- as.factor(data$class)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Elec_logistic/"
-  source("experiments/Elec_logistic.R")
+  experiment_result_path <- "scripts/results/Elec_logistic/"
+  source("scripts/experiments/Elec_logistic.R")
   df_results <- rbind(df_results,df2)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -17,13 +18,13 @@ elec_lr_results <- cbind(df_results,Model="LR")
 ## Decision Tree
 rm(list=setdiff(ls(), "elec_lr_results"))
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","elec",".arff"))
+data <- read.arff(paste0("data/","elec",".arff"))
 data$class <- ifelse(data$class =="UP",1,0)
 data$class <- as.factor(data$class)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Elec_dt/"
-  source("experiments/Elec.R")
+  experiment_result_path <- "scripts/results/Elec_dt/"
+  source("scripts/experiments/Elec.R")
   df_results <- rbind(df_results,df2)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -32,31 +33,31 @@ elec_dt_results <-  cbind(df_results,Model="DT")
 ## Random Forest
 rm(list=setdiff(ls(), c("elec_lr_results","elec_dt_results")))
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","elec",".arff"))
+data <- read.arff(paste0("data/","elec",".arff"))
 data$class <- ifelse(data$class =="UP",1,0)
 data$class <- as.factor(data$class)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Elec_rf/"
-  source("experiments/Elec_rf.R")
+  experiment_result_path <- "scripts/results/Elec_rf/"
+  source("scripts/experiments/Elec_rf.R")
   df_results <- rbind(df_results,df2)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
 elec_rf_results <- cbind(df_results,Model="RF")
 
 elec_results <- rbind(elec_lr_results,elec_dt_results,elec_rf_results)
-write.csv(elec_results,file=paste0("experiments_elec_","results.csv"),row.names = FALSE)
+write.csv(elec_results,file=paste0("experiments_Elec2_","results.csv"),row.names = FALSE)
 
 # Friedman
 ## Logistic Regression - Friedman
 rm(list=ls())
 jjj <- c(3,5,7)
-data <- read.csv("experiments/data-sets/friedman_drift_dataset.csv",
+data <- read.csv("data/friedman_drift_dataset.csv",
                  header = TRUE)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Friedman_logistic/"
-  source("experiments/Friedman_logistic.R")
+  experiment_result_path <- "scripts/results/Friedman_logistic/"
+  source("scripts/experiments/Friedman_logistic.R")
   df_results <- rbind(df_results,df1)
 }
 friedman_lr_results <- cbind(df_results,Model="Linear R.")
@@ -64,12 +65,12 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 ## Decision Tree- Friedman
 rm(list=setdiff(ls(), "friedman_lr_results"))
 jjj <- c(3,5,7)
-data <- read.csv("experiments/data-sets/friedman_drift_dataset.csv",
+data <- read.csv("data/friedman_drift_dataset.csv",
                  header = TRUE)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Friedman_dt/"
-  source("experiments/Friedman.R")
+  experiment_result_path <- "scripts/results/Friedman_dt/"
+  source("scripts/experiments/Friedman.R")
   df_results <- rbind(df_results,df1)
 }
 friedman_dt_results <- cbind(df_results,Model="DT")
@@ -78,19 +79,19 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 ## Random Forest - Friedman
 rm(list=setdiff(ls(), c("friedman_lr_results","friedman_dt_results")))
 jjj <- c(3,5,7)
-data <- read.csv("experiments/data-sets/friedman_drift_dataset.csv",
+data <- read.csv("data/friedman_drift_dataset.csv",
                  header = TRUE)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Friedman_rf/"
-  source("experiments/Friedman_rf.R")
+  experiment_result_path <- "scripts/results/Friedman_rf/"
+  source("scripts/experiments/Friedman_rf.R")
   df_results <- rbind(df_results,df1)
 }
 friedman_rf_results <- cbind(df_results,Model="RF")
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
 
 friedman_results <- rbind(friedman_lr_results,friedman_dt_results,friedman_rf_results)
-write.csv(friedman_results,file=paste0("experiments_friedman_","results.csv"),row.names = FALSE)
+write.csv(friedman_results,file=paste0("experiments_Friedman_","results.csv"),row.names = FALSE)
 
 
 
@@ -98,11 +99,11 @@ write.csv(friedman_results,file=paste0("experiments_friedman_","results.csv"),ro
 ## Logistic Regression - Hyperplane
 rm(list=ls())
 jjj <- c(3,5,7)
-data <- read.csv("experiments/data-sets/hyperplane07.csv",header = TRUE)
+data <- read.csv("data/hyperplane07.csv",header = TRUE)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Hyperplane_logistic/"
-  source("experiments/Hyperplane_logistic.R")
+  experiment_result_path <- "scripts/results/Hyperplane_logistic/"
+  source("scripts/experiments/Hyperplane_logistic.R")
   df_results <- rbind(df_results,df1)
 }
 hyperplane_lr_results <- cbind(df_results,Model="LR")
@@ -111,12 +112,12 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 ## Decision Tree- Hyperplane
 rm(list=setdiff(ls(), "hyperplane_lr_results"))
 jjj <- c(3,5,7)
-data <- read.csv("experiments/data-sets/hyperplane07.csv",header = TRUE)
+data <- read.csv("data/hyperplane07.csv",header = TRUE)
 data$target <- as.factor(data$target)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Hyperplane_dt/"
-  source("experiments/Hyperplane.R")
+  experiment_result_path <- "scripts/results/Hyperplane_dt/"
+  source("scripts/experiments/Hyperplane.R")
   df_results <- rbind(df_results,df1)
 }
 hyperplane_dt_results <- cbind(df_results,Model="DT")
@@ -125,19 +126,19 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 ## Random Forest - Hyperplane
 rm(list=setdiff(ls(), c("hyperplane_lr_results","hyperplane_dt_results")))
 jjj <- c(3,5,7)
-data <- read.csv("experiments/data-sets/hyperplane07.csv",header = TRUE)
+data <- read.csv("data/hyperplane07.csv",header = TRUE)
 data$target <- as.factor(data$target)
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Hyperplane_rf/"
-  source("experiments/Hyperplane_rf.R")
+  experiment_result_path <- "scripts/results/Hyperplane_rf/"
+  source("scripts/experiments/Hyperplane_rf.R")
   df_results <- rbind(df_results,df1)
 }
 hyperplane_rf_results <- cbind(df_results,Model="RF")
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
 
 hyperplane_results <- rbind(hyperplane_lr_results,hyperplane_dt_results,hyperplane_rf_results)
-write.csv(hyperplane_results,file=paste0("experiments_hyperplane_","results.csv"),row.names = FALSE)
+write.csv(hyperplane_results,file=paste0("experiments_Hyperplane_","results.csv"),row.names = FALSE)
 
 
 
@@ -146,11 +147,11 @@ write.csv(hyperplane_results,file=paste0("experiments_hyperplane_","results.csv"
 ## Logistic - NOAA
 rm(list=ls())
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","NOAA",".arff"))
+data <- read.arff(paste0("data/","NOAA",".arff"))
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/NOAA_logistic/"
-  source("experiments/NOAA_logistic.R")
+  experiment_result_path <- "scripts/results/NOAA_logistic/"
+  source("scripts/experiments/NOAA_logistic.R")
   df_results <- rbind(df_results,df)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -158,11 +159,11 @@ NOAA_lr_results <- cbind(df_results,Model="LR")
 ## Decision Tree - NOAA
 rm(list=setdiff(ls(), "NOAA_lr_results"))
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","NOAA",".arff"))
+data <- read.arff(paste0("data/","NOAA",".arff"))
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/NOAA_dt/"
-  source("experiments/NOAA.R")
+  experiment_result_path <- "scripts/results/NOAA_dt/"
+  source("scripts/experiments/NOAA.R")
   df_results <- rbind(df_results,df)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -171,11 +172,11 @@ NOAA_dt_results <-  cbind(df_results,Model="DT")
 ## Random Forest - NOAA
 rm(list=setdiff(ls(), c("NOAA_lr_results","NOAA_dt_results")))
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","NOAA",".arff"))
+data <- read.arff(paste0("data/","NOAA",".arff"))
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/NOAA_rf/"
-  source("experiments/NOAA_rf.R")
+  experiment_result_path <- "scripts/results/NOAA_rf/"
+  source("scripts/experiments/NOAA_rf.R")
   df_results <- rbind(df_results,df)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -190,11 +191,11 @@ write.csv(NOAA_results,file=paste0("experiments_NOAA_","results.csv"),row.names 
 ## Logistic - Ozone
 rm(list=ls())
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","ozone",".arff"))
+data <- read.arff(paste0("data/","ozone",".arff"))
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Ozone_logistic/"
-  source("experiments/Ozone_logistic.R")
+  experiment_result_path <- "scripts/results/Ozone_logistic/"
+  source("scripts/experiments/Ozone_logistic.R")
   df_results <- rbind(df_results,df111)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -203,11 +204,11 @@ Ozone_lr_results <- cbind(df_results,Model="LR")
 ## Decision Tree - Ozone
 rm(list=setdiff(ls(), "Ozone_lr_results"))
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","ozone",".arff"))
+data <- read.arff(paste0("data/","ozone",".arff"))
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Ozone_dt/"
-  source("experiments/Ozone.R")
+  experiment_result_path <- "scripts/results/Ozone_dt/"
+  source("scripts/experiments/Ozone.R")
   df_results <- rbind(df_results,df111)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -216,11 +217,11 @@ Ozone_dt_results <-  cbind(df_results,Model="DT")
 ## Random Forest - Ozone
 rm(list=setdiff(ls(), c("Ozone_lr_results","Ozone_dt_results")))
 jjj <- c(3,5,7)
-data <- read.arff(paste0("experiments/data-sets/","ozone",".arff"))
+data <- read.arff(paste0("data/","ozone",".arff"))
 df_results <- data.frame()
 for(jj in jjj){
-  experiment_result_path <- "experiments/results/Ozone_rf/"
-  source("experiments/Ozone_rf.R")
+  experiment_result_path <- "scripts/results/Ozone_rf/"
+  source("scripts/experiments/Ozone_rf.R")
   df_results <- rbind(df_results,df111)
 }
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
@@ -233,13 +234,13 @@ write.csv(Ozone_results,file=paste0("experiments_Ozone_","results.csv"),row.name
 ## Logistic - SEA
 rm(list = ls())
 jjj <- c(3,5,7)
-xx <- read.csv("experiments/data-sets/SEA/SEA_training_data.csv",header = FALSE)
-yy <- read.csv("experiments/data-sets/SEA/SEA_training_class.csv",header = FALSE)
+xx <- read.csv("data/SEA/SEA_training_data.csv",header = FALSE)
+yy <- read.csv("data/SEA/SEA_training_class.csv",header = FALSE)
 df_results <- data.frame()
 for(jj in jjj){
-  data <- data.frame(xx, class = as.factor(yy$V1)) 
-  experiment_result_path <- "experiments/results/SEA_logistic/"
-  source("experiments/SEA_logistic.R")
+  data <- data.frame(xx, class = as.factor(yy$V1))
+  experiment_result_path <- "scripts/results/SEA_logistic/"
+  source("scripts/experiments/SEA_logistic.R")
   df_results <- rbind(df_results,df)
 }
 SEA_lr_results <- cbind(df_results,Model="LR")
@@ -248,13 +249,13 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 ## Decision Tree - SEA
 rm(list=setdiff(ls(), "SEA_lr_results"))
 jjj <- c(3,5,7)
-xx <- read.csv("experiments/data-sets/SEA/SEA_training_data.csv",header = FALSE)
-yy <- read.csv("experiments/data-sets/SEA/SEA_training_class.csv",header = FALSE)
+xx <- read.csv("data/SEA/SEA_training_data.csv",header = FALSE)
+yy <- read.csv("data/SEA/SEA_training_class.csv",header = FALSE)
 df_results <- data.frame()
 for(jj in jjj){
-  data <- data.frame(xx, class = as.factor(yy$V1)) 
-  experiment_result_path <- "experiments/results/SEA_dt/"
-  source("experiments/SEA.R")
+  data <- data.frame(xx, class = as.factor(yy$V1))
+  experiment_result_path <- "scripts/results/SEA_dt/"
+  source("scripts/experiments/SEA.R")
   df_results <- rbind(df_results,df)
 }
 SEA_dt_results <- cbind(df_results,Model="DT")
@@ -263,13 +264,13 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 ## Random Forest - SEA
 rm(list=setdiff(ls(), c("SEA_lr_results","SEA_dt_results")))
 jjj <- c(3,5,7)
-xx <- read.csv("experiments/data-sets/SEA/SEA_training_data.csv",header = FALSE)
-yy <- read.csv("experiments/data-sets/SEA/SEA_training_class.csv",header = FALSE)
+xx <- read.csv("data/SEA/SEA_training_data.csv",header = FALSE)
+yy <- read.csv("data/SEA/SEA_training_class.csv",header = FALSE)
 df_results <- data.frame()
 for(jj in jjj){
-  data <- data.frame(xx, class = as.factor(yy$V1)) 
-  experiment_result_path <- "experiments/results/SEA_rf/"
-  source("experiments/SEA_rf.R")
+  data <- data.frame(xx, class = as.factor(yy$V1))
+  experiment_result_path <- "scripts/results/SEA_rf/"
+  source("scripts/experiments/SEA_rf.R")
   df_results <- rbind(df_results,df)
 }
 SEA_rf_results <- cbind(df_results,Model="RF")
@@ -279,3 +280,4 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 
 SEA_results <- rbind(SEA_lr_results,SEA_dt_results,SEA_rf_results)
 write.csv(SEA_results,file=paste0("experiments_SEA_","results.csv"),row.names = FALSE)
+

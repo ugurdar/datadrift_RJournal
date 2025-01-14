@@ -1,3 +1,6 @@
+
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/randomForest/randomForest_4.7-1.tar.gz"
+# install.packages(packageurl, repos=NULL, type="source")
 library(DALEX)
 library(datadriftR)
 library(rpart)
@@ -9,13 +12,13 @@ library(foreign)
 library(dplyr)
 split_data_simple <- function(data,jj) {
   subset_size <- floor(nrow(data) / jj)
-  
+
   train_size <- floor(subset_size * 0.8)
   test_size <- subset_size - train_size
-  
+
   train_set <- data[1:train_size, ]
   test_set <- data[(train_size + 1):(train_size + test_size), ]
-  
+
   list(total = dim(data)[1] ,train_set = dim(train_set)[1], test_set = dim(test_set)[1])
 }
 
@@ -32,7 +35,7 @@ metric_list_cal <- function(profile1,profile2){
   pd$set_profiles(profile1, profile2)
   result <- pd$calculate_difference()
   l2_der_cutoff <- result$distance
-  
+
   list(PDI = pdi_cutoff, L2 = l2_cutoff,L2Der = l2_der_cutoff)
 }
 
@@ -76,16 +79,16 @@ save_plots <- function(plot_list,
                        number_of_batch,accuracy) {
   n <- length(plot_list)
   height <- 6 + (n - 2) * 2 # Height calculation based on number of plots
-  
+
   pp <- do.call(grid.arrange, c(plot_list, nrow = n))
-  
+
   ggsave(
-    filename = paste0(experiment_result_path, "all_",accuracy,"_" ,number_of_batch, ".png"), 
-    plot = pp, 
-    width = 9, 
+    filename = paste0(experiment_result_path, "all_",accuracy,"_" ,number_of_batch, ".png"),
+    plot = pp,
+    width = 9,
     height = height,
     limitsize = FALSE  # Allow saving of large plots
-    
+
   )
 }
 

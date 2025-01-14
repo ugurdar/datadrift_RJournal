@@ -18,6 +18,99 @@ knitr::include_graphics("figures/mdp_resize.png")
 knitr::include_graphics("figures/pdd_resize.png")
 
 
+## ----message=FALSE, warning=FALSE, include=FALSE------------------------------
+  # Gerekli kütüphaneleri yükle
+# rmarkdown::render("datadriftR.Rmd", output_format = "all")
+  library(dplyr)
+  library(tidyr)
+generate_latex_table <- function(experiment_name, base_path = "scripts/results_tables/") {
+  # Dosya yolu oluştur
+  file_path <- paste0(base_path, "experiments_", experiment_name, "_results.csv")
+  
+  # CSV dosyasını oku
+  data <- read.csv(file_path)
+  
+  # Method ve Model sıralamalarını ayarla
+  method_levels <- c("HDDM-A", "HDDM-W", "KSWIN", "PH", "DDM", "EDDM", "PDD")
+  model_levels <- c("LR","DT", "RF")
+  
+  # Veriyi işleyerek LaTeX tablosu için düzenle
+  formatted_data <- data %>%
+    filter(!Model %in% c("Base Test", "Base Train", "batch sizes")) %>%
+    mutate(
+      Method = gsub("_", "-", Model),
+      Method = ifelse(Method == "PageHinkley", "PH", Method),
+      Model.1 = ifelse(Model.1 == "Linear R.", "LR", Model.1),
+      Model = gsub("_", "-", Model.1),
+      Batch = as.factor(Batch),
+      Method = factor(Method, levels = method_levels),
+      Model = factor(Model, levels = model_levels)
+    ) %>%
+    group_by(Method, Model, Batch) %>%
+    summarise(
+      Mean_Accuracy = mean(Mean_Accuracy, na.rm = TRUE),
+      Drift_Count = sum(Drift_Count, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    pivot_wider(
+      names_from = Batch,
+      values_from = c(Mean_Accuracy, Drift_Count),
+      names_glue = "{.value}_{Batch}"
+    ) %>%
+    arrange(Method, Model)
+  
+  # LaTeX tablosu için başlangıç
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The results of experiments on the \\texttt{", experiment_name, "} dataset}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:exp_", experiment_name, "}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{llcccccc}\\toprule\n")
+  latex_output <- paste0(latex_output, "        && \\multicolumn{6}{c}{\\textbf{\\#batch}}\\\\\\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "        && \\multicolumn{2}{c}{\\textbf{10}}    & \\multicolumn{2}{c}{\\textbf{20}} & \\multicolumn{2}{c}{\\textbf{30}} \\\\\\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "        \\textbf{Method} & \\textbf{Model} & \\textbf{accuracy} & \\textbf{\\#drifts} & \\textbf{accuracy} & \\textbf{\\#drifts} & \\textbf{accuracy} & \\textbf{\\#drifts} \\\\\\midrule\n")
+  
+  # Yöntem ve model grupları için satırları ekle
+  for (method in levels(formatted_data$Method)) {
+    if(method %in% unique(formatted_data$Method)){
+    method_data <- formatted_data %>% filter(Method == method)
+    first_row <- TRUE
+    for (model in levels(method_data$Model)) {
+      row <- method_data %>% filter(Model == model)
+      if (nrow(row) > 0) {
+        latex_output <- paste0(
+          latex_output,
+          ifelse(first_row, paste0("        ", method, " "), "        "),
+          "& ", model, 
+          " & ", format(row$Mean_Accuracy_10, digits = 4, nsmall = 4), 
+          " & ", row$Drift_Count_10, 
+          " & ", format(row$Mean_Accuracy_20, digits = 4, nsmall = 4), 
+          " & ", row$Drift_Count_20, 
+          " & ", format(row$Mean_Accuracy_30, digits = 4, nsmall = 4), 
+          " & ", row$Drift_Count_30, 
+          " \\\\\n"
+        )
+        first_row <- FALSE
+      }
+    }
+    latex_output <- paste0(latex_output, "        \\midrule\n")
+    }
+  }
+  
+  # Tabloyu kapat
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  # LaTeX çıktısını döndür
+  return(latex_output)
+}
+
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+cat(generate_latex_table("SEA"))
+
+
 ## ----sealogistic, out.width = "95%", fig.cap = "PDPs of the Logistic Regression model trained on \\texttt{SEA} dataset"----
 knitr::include_graphics("figures/sea_logistic_10.png")
 
@@ -30,6 +123,222 @@ knitr::include_graphics("figures/sea_dt_10.png")
 knitr::include_graphics("figures/sea_rf_10.png")
 
 
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+cat(generate_latex_table("Hyperplane"))
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+cat(generate_latex_table("NOAA"))
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+cat(generate_latex_table("Ozone"))
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+cat(generate_latex_table("Elec2"))
+
+
 ## ----rfelec10, out.width = "80%", fig.cap = "PDPs of the Random Forest model trained on \\texttt{Elec2} dataset"----
 knitr::include_graphics("figures/rf_elec_10.png")
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+cat(generate_latex_table("Friedman"))
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+SEA <- read.csv("scripts/results_tables/experiments_SEA_results.csv")
+SEA$Dataset <- "SEA"
+Hyperplane <- read.csv("scripts/results_tables/experiments_Hyperplane_results.csv")
+Hyperplane$Dataset <- "Hyperplane"
+NOAA <- read.csv("scripts/results_tables/experiments_NOAA_results.csv")
+NOAA$Dataset <- "NOAA"
+Ozone <- read.csv("scripts/results_tables/experiments_Ozone_results.csv")
+Ozone$Dataset <- "Ozone"
+Elec2 <- read.csv("scripts/results_tables/experiments_Elec2_results.csv")
+Elec2$Dataset <- "Elec2"
+Friedman <- read.csv("scripts/results_tables/experiments_Friedman_results.csv")
+Friedman$Dataset <- "Friedman"
+
+df <- rbind(SEA,Hyperplane,NOAA,Ozone,Elec2,Friedman)
+
+Batch_sizes <- df |>
+  group_by(Dataset,Batch) |>
+  filter(Model == "batch sizes") |>
+  select(train = Mean_Accuracy, test = Drift_Count) |> 
+  unique()
+
+generate_batch_table <- function(data) {
+  # Veriyi geniş forma dönüştür
+  formatted_data <- data %>%
+    pivot_wider(
+      names_from = Batch,
+      values_from = c(train, test),
+      names_glue = "{.value}_{Batch}"
+    )
+  
+  # LaTeX tablosunun başlangıcı
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The number of observations in the batches}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:batch_number}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{lrrrrrr}\\toprule\n")
+  latex_output <- paste0(latex_output, "                & \\multicolumn{6}{c}{\\textbf{\\#batch}}\\\\\\cmidrule(lr){2-7}\n")
+  latex_output <- paste0(latex_output, "                & \\multicolumn{2}{c}{\\textbf{10}} & \\multicolumn{2}{c}{\\textbf{20}} & \\multicolumn{2}{c}{\\textbf{30}} \\\\\\cmidrule(lr){2-7}\n")
+  latex_output <- paste0(latex_output, "        \\textbf{Dataset} & \\textbf{train} & \\textbf{test} & \\textbf{train} & \\textbf{test} & \\textbf{train} & \\textbf{test} \\\\\\midrule\n")
+  
+  # Her veri kümesi için satırları ekle
+  for (i in seq_len(nrow(formatted_data))) {
+    row <- formatted_data[i, ]
+    latex_output <- paste0(
+      latex_output,
+      "        \\texttt{", row$Dataset, "} & ", 
+      row$train_10, " & ", row$test_10, " & ",
+      row$train_20, " & ", row$test_20, " & ",
+      row$train_30, " & ", row$test_30, " \\\\\n"
+    )
+  }
+  
+  # Tabloyu kapat
+  latex_output <- paste0(latex_output, "        \\bottomrule\n")
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  return(latex_output)
+}
+
+cat(generate_batch_table(Batch_sizes))
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+
+vip <- df  |> group_by(Dataset,Model.1,Batch) |> select(Dataset,Model = Model.1, Batch, most_important) |> unique()
+vip <- vip |> mutate(Model=ifelse(Model == "Linear R.","LR",Model))
+
+generate_vip_table <- function(vip) {
+  # Veriyi benzersizleştir
+  vip <- vip %>%
+    distinct(Dataset, Model, Batch, .keep_all = TRUE)  # Benzersizleştir
+  
+  # Pivot işlemi
+  formatted_data <- vip %>%
+    pivot_wider(
+      names_from = Batch,
+      values_from = most_important
+    ) 
+  
+  # Alt çizgi (_) karakterlerini kaçış karakterine dönüştür
+  formatted_data <- formatted_data %>%
+    mutate(across(starts_with("10"):starts_with("30"), ~ gsub("_", "\\_", ., fixed = TRUE)))
+  
+  # LaTeX tablosu oluşturma
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The most important variables in the batches}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:vip_batch}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{llccc}\\toprule\n")
+  latex_output <- paste0(latex_output, "                            &       & \\multicolumn{3}{c}{\\textbf{\\#batch}}\\\\\\cmidrule(lr){3-5}\n")
+  latex_output <- paste0(latex_output, "        \\textbf{Dataset}    & \\textbf{Model} & \\textbf{10}                    & \\textbf{20}                    & \\textbf{30} \\\\\\midrule\n")
+  
+  # Her bir dataset ve model için satırları ekleme
+  for (dataset in unique(formatted_data$Dataset)) {
+    dataset_data <- formatted_data %>% filter(Dataset == dataset)
+    first_row <- TRUE
+    for (i in seq_len(nrow(dataset_data))) {
+      row <- dataset_data[i, ]
+      latex_output <- paste0(
+        latex_output,
+        ifelse(first_row, paste0("        \\texttt{", dataset, "} "), "                            "),
+        "& ", row$Model, 
+        " & \\texttt{", row[[3]], "}", 
+        " & \\texttt{", row[[4]], "}", 
+        " & \\texttt{", row[[5]], "} \\\\\n"
+      )
+      first_row <- FALSE
+    }
+    latex_output <- paste0(latex_output, "        \\midrule\n")
+  }
+  
+  # Tabloyu kapat
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  return(latex_output)
+}
+# Örnek kullanım
+vip_latex_table <- generate_vip_table(vip)
+
+# Konsola yazdır
+cat(vip_latex_table)
+
+
+## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
+accuracy <- df |> filter(Model == "Base Train" | Model == "Base Test") |> mutate(type = ifelse(Model == "Base Train","train","test")) |> select(Dataset,Model = Model.1, Batch, type, accuracy = Mean_Accuracy) |>group_by(Dataset,Model,Batch,type) |>  unique()
+
+accuracy <- accuracy |> mutate(Model=ifelse(Model == "Linear R.","LR",Model))
+
+generate_accuracy_table <- function(data) {
+  # Veri genişletme: Batch ve type değerlerini kullanarak genişletiyoruz
+  formatted_data <- data %>%
+    pivot_wider(
+      names_from = c(Batch, type),
+      values_from = accuracy,
+      names_glue = "{type}_{Batch}"  # "test_10", "train_10" gibi adlar oluşturulur
+    ) 
+  
+  # LaTeX tablosu başlatma
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The accuracies of the models in the batches}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:acc_batch}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{llcccccc}\\toprule\n")
+  latex_output <- paste0(latex_output, "    & & \\multicolumn{6}{c}{\\textbf{\\#batch}}\\\\\n")
+  latex_output <- paste0(latex_output, "    \\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "    & & \\multicolumn{2}{c}{\\textbf{10}} & \\multicolumn{2}{c}{\\textbf{20}} & \\multicolumn{2}{c}{\\textbf{30}} \\\\\n")
+  latex_output <- paste0(latex_output, "    \\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "    \\textbf{Dataset} & \\textbf{Model} & \\textbf{test} & \\textbf{train} & \\textbf{test} & \\textbf{train} & \\textbf{test} & \\textbf{train} \\\\\n")
+  latex_output <- paste0(latex_output, "    \\midrule\n")
+  
+  # Her dataset ve model için satırları ekleme
+  for (dataset in unique(formatted_data$Dataset)) {
+    dataset_data <- formatted_data %>% filter(Dataset == dataset)
+    first_row <- TRUE
+    for (i in seq_len(nrow(dataset_data))) {
+      row <- dataset_data[i, ]
+      latex_output <- paste0(
+        latex_output,
+        ifelse(first_row, paste0("    \\texttt{", dataset, "} "), "                          "),
+        "& ", row$Model, 
+        " & ", format(row$test_10, digits = 4, nsmall = 4),
+        " & ", format(row$train_10, digits = 4, nsmall = 4),
+        " & ", format(row$test_20, digits = 4, nsmall = 4),
+        " & ", format(row$train_20, digits = 4, nsmall = 4),
+        " & ", format(row$test_30, digits = 4, nsmall = 4),
+        " & ", format(row$train_30, digits = 4, nsmall = 4),
+        " \\\\\n"
+      )
+      first_row <- FALSE
+    }
+    latex_output <- paste0(latex_output, "    \\midrule\n")
+  }
+  
+  # Tabloyu kapatma
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  return(latex_output)
+}
+
+# Fonksiyonu çalıştır
+accuracy_latex_table <- generate_accuracy_table(accuracy)
+
+# Sonuçları göster
+cat(accuracy_latex_table)
+
+
+
 

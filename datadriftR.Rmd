@@ -354,6 +354,95 @@ In this section, the results of experiments conducted on the datasets---\texttt{
 
 In this section, the results of experiments conducted on the datasets---\texttt{SEA}, \texttt{Hyperplane}, \texttt{NOAA}, \texttt{Ozone}, \texttt{Elec2}, and \texttt{Friedman}---are summarized. The performance of the methods is evaluated in terms of accuracy and the number of detected drifts (\texttt{\#drift}). The PDI metric was not used due to the similarity in shape, and the cutoff values for L2 and L2Der were set to five times the values calculated on the test set in the logistic regression models. All metrics were calculated on the test set and used as cutoff values for the decision tree and random forest models. 
 
+```{r message=FALSE, warning=FALSE, include=FALSE}
+  # Gerekli kütüphaneleri yükle
+# rmarkdown::render("datadriftR.Rmd", output_format = "all")
+  library(dplyr)
+  library(tidyr)
+generate_latex_table <- function(experiment_name, base_path = "scripts/results_tables/") {
+  # Dosya yolu oluştur
+  file_path <- paste0(base_path, "experiments_", experiment_name, "_results.csv")
+  
+  # CSV dosyasını oku
+  data <- read.csv(file_path)
+  
+  # Method ve Model sıralamalarını ayarla
+  method_levels <- c("HDDM-A", "HDDM-W", "KSWIN", "PH", "DDM", "EDDM", "PDD")
+  model_levels <- c("LR","DT", "RF")
+  
+  # Veriyi işleyerek LaTeX tablosu için düzenle
+  formatted_data <- data %>%
+    filter(!Model %in% c("Base Test", "Base Train", "batch sizes")) %>%
+    mutate(
+      Method = gsub("_", "-", Model),
+      Method = ifelse(Method == "PageHinkley", "PH", Method),
+      Model.1 = ifelse(Model.1 == "Linear R.", "LR", Model.1),
+      Model = gsub("_", "-", Model.1),
+      Batch = as.factor(Batch),
+      Method = factor(Method, levels = method_levels),
+      Model = factor(Model, levels = model_levels)
+    ) %>%
+    group_by(Method, Model, Batch) %>%
+    summarise(
+      Mean_Accuracy = mean(Mean_Accuracy, na.rm = TRUE),
+      Drift_Count = sum(Drift_Count, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    pivot_wider(
+      names_from = Batch,
+      values_from = c(Mean_Accuracy, Drift_Count),
+      names_glue = "{.value}_{Batch}"
+    ) %>%
+    arrange(Method, Model)
+  
+  # LaTeX tablosu için başlangıç
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The results of experiments on the \\texttt{", experiment_name, "} dataset}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:exp_", experiment_name, "}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{llcccccc}\\toprule\n")
+  latex_output <- paste0(latex_output, "        && \\multicolumn{6}{c}{\\textbf{\\#batch}}\\\\\\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "        && \\multicolumn{2}{c}{\\textbf{10}}    & \\multicolumn{2}{c}{\\textbf{20}} & \\multicolumn{2}{c}{\\textbf{30}} \\\\\\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "        \\textbf{Method} & \\textbf{Model} & \\textbf{accuracy} & \\textbf{\\#drifts} & \\textbf{accuracy} & \\textbf{\\#drifts} & \\textbf{accuracy} & \\textbf{\\#drifts} \\\\\\midrule\n")
+  
+  # Yöntem ve model grupları için satırları ekle
+  for (method in levels(formatted_data$Method)) {
+    if(method %in% unique(formatted_data$Method)){
+    method_data <- formatted_data %>% filter(Method == method)
+    first_row <- TRUE
+    for (model in levels(method_data$Model)) {
+      row <- method_data %>% filter(Model == model)
+      if (nrow(row) > 0) {
+        latex_output <- paste0(
+          latex_output,
+          ifelse(first_row, paste0("        ", method, " "), "        "),
+          "& ", model, 
+          " & ", format(row$Mean_Accuracy_10, digits = 4, nsmall = 4), 
+          " & ", row$Drift_Count_10, 
+          " & ", format(row$Mean_Accuracy_20, digits = 4, nsmall = 4), 
+          " & ", row$Drift_Count_20, 
+          " & ", format(row$Mean_Accuracy_30, digits = 4, nsmall = 4), 
+          " & ", row$Drift_Count_30, 
+          " \\\\\n"
+        )
+        first_row <- FALSE
+      }
+    }
+    latex_output <- paste0(latex_output, "        \\midrule\n")
+    }
+  }
+  
+  # Tabloyu kapat
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  # LaTeX çıktısını döndür
+  return(latex_output)
+}
+
+```
+
 
 ### \texttt{SEA}
 
@@ -361,44 +450,10 @@ In this section, the results of experiments conducted on the datasets---\texttt{
 
 Table~\ref{tab:exp_SEA} examines the performance of several drift detection methods across the models. The PDD method generally demonstrated high accuracy rates. Specifically, with 10 batches, the LR and RF models showed competitive or superior performance compared to other methods. On the other hand, methods like KSWIN and EDDM also achieved high accuracy rates but detected a considerably higher number of drifts in some cases, indicating that these methods might be overly sensitive. The HDDM-A and HDDM-W methods detected a limited number of drifts, especially with lower batch numbers, and showed similar performance to PDD in terms of accuracy. The PH method exhibited stable performance in drift detection but did not achieve accuracy rates as high as PDD. The DDM method either failed to detect drifts or detected very few drifts in some batch sizes, suggesting that it is less sensitive.
 
-\begin{table}[H]
-    \centering
-    \small
-    \caption{The results of experiments  on the \texttt{SEA} dataset}
-    \label{tab:exp_SEA}
-    \begin{tabular}{llcccccc}\toprule
-        && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
-        && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
-        HDDM-A & LR & 0.8306 & 1 & 0.8462 & 2 & 0.8447 & 2 \\
-        & DT & 0.8318 & 2 & 0.8400 & 2 & 0.8264 & 1 \\
-        & RF & 0.8264 & 1 & 0.8432 & 2 & 0.8384 & 2 \\
-        \midrule
-        HDDM-W & LR & 0.8279 & 3 & 0.8443 & 2 & 0.8407 & 2 \\
-        & DT & 0.8248 & 3 & 0.8389 & 2 & 0.8354 & 2 \\
-        & RF & 0.8258 & 3 & 0.8412 & 4 & 0.8360 & 3 \\
-        \midrule
-        KSWIN & LR & 0.8292 & 10 & 0.8455 & 20 & 0.8428 & 27 \\
-        & DT & 0.8294 & 10 & 0.8440 & 20 & 0.8376 & 29 \\
-        & RF & 0.8267 & 10 & 0.8425 & 20 & 0.8384 & 29 \\
-        \midrule
-        PH & LR & 0.8337 & 1 & 0.8447 & 3 & 0.8437 & 3 \\
-        & DT & 0.8307 & 1 & 0.8424 & 3 & 0.8368 & 3 \\
-        & RF & 0.8298 & 1 & 0.8412 & 3 & 0.8393 & 3 \\
-        \midrule
-        DDM & LR & 0.8284 & 0 & 0.8460 & 3 & 0.8426 & 5 \\
-        & DT & 0.8267 & 0 & 0.8432 & 1 & 0.8356 & 3 \\
-        & RF & 0.8267 & 0 & 0.8429 & 3 & 0.8379 & 3 \\
-        \midrule
-        EDDM & LR & 0.8292 & 10 & 0.8455 & 20 & 0.8340 & 12 \\
-        & DT & 0.8291 & 9 & 0.8435 & 18 & 0.8340 & 8 \\
-        & RF & 0.8267 & 10 & 0.8426 & 19 & 0.8392 & 13 \\
-        \midrule
-        PDD & LR & 0.8309 & 5 & 0.8464 & 18 & 0.8372 & 12 \\
-        & DT & 0.8230 & 1 & 0.8405 & 3 & 0.8349 & 8 \\
-        & RF & 0.8264 & 4 & 0.8429 & 4 & 0.8372 & 12 \\\bottomrule
-    \end{tabular}
-\end{table}
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+cat(generate_latex_table("SEA"))
+```
+
 
 Regarding drift detection, the PDD method identified drifts in a more controlled manner, detecting fewer drifts in medium and large batch sizes and thus providing more stable performance. In contrast, other methods, particularly KSWIN and EDDM, detected more drifts, which, while successful in capturing real drifts, could increase the rate of false positive drift detections. HDDM-A and HDDM-W detected fewer drifts, which might indicate that these methods are not fully capturing all actual drifts. The PH and DDM methods detected a moderate number of drifts, with their performance varying depending on the nature of the drifts.
 
@@ -431,44 +486,11 @@ knitr::include_graphics("figures/sea_rf_10.png")
 
 The results in Table~\ref{tab:exp_Hyperplane} demonstrate that, for the \texttt{Hyperplane} dataset, the PDD method generally showed competitive accuracy rates only at $20$ batches. Specifically, the LR model achieved an accuracy of $0.8648$ with $10$ batches, which was comparable to methods like KSWIN and EDDM. However, as the number of batches increased to $30$, the accuracy of PDD decreased significantly, reaching $0.5219$ for the LR model, indicating diminished performance outside the $20$ batches.
 
-\begin{table}[H]
-    \centering
-    \small
-    \caption{The results of experiments for \texttt{Hyperplane} dataset}
-    \label{tab:exp_Hyperplane}
-    \begin{tabular}{llcccccc}\toprule
-        && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
-        && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
-        HDDM-A & LR & 0.8662 & 1 & 0.8204 & 2 & 0.7568 & 3 \\
-        & DT & 0.8398 & 0 & 0.7670 & 3 & 0.6921 & 3 \\
-        & RF & 0.7834 & 0 & 0.6809 & 1 & 0.6267 & 1 \\
-        \midrule
-        HDDM-W & LR & 0.8377 & 1 & 0.8456 & 3 & 0.8152 & 4 \\
-        & DT & 0.8398 & 0 & 0.7752 & 2 & 0.7316 & 4 \\
-        & RF & 0.7794 & 2 & 0.7615 & 3 & 0.7528 & 6 \\
-        \midrule
-        KSWIN & LR & 0.8639 & 9 & 0.8458 & 13 & 0.8285 & 18 \\
-        & DT & 0.8520 & 9 & 0.8429 & 17 & 0.8162 & 19 \\
-        & RF & 0.8208 & 10 & 0.8123 & 16 & 0.7943 & 22 \\
-        \midrule
-        PH & LR & 0.8648 & 0 & 0.8187 & 1 & 0.7455 & 2 \\
-        & DT & 0.8398 & 0 & 0.7014 & 1 & 0.6929 & 1 \\
-        & RF & 0.7834 & 0 & 0.7033 & 1 & 0.6267 & 1 \\
-        \midrule
-        DDM & LR & 0.8648 & 0 & 0.8071 & 1 & 0.7455 & 2 \\
-        & DT & 0.8398 & 0 & 0.7014 & 1 & 0.7283 & 3 \\
-        & RF & 0.7834 & 0 & 0.7297 & 3 & 0.6267 & 1 \\
-        \midrule
-        EDDM & LR & 0.8648 & 0 & 0.8485 & 13 & 0.8348 & 5 \\
-        & DT & 0.8496 & 10 & 0.8562 & 15 & 0.8379 & 11 \\
-        & RF & 0.7834 & 0 & 0.8066 & 16 & 0.7481 & 5 \\
-        \midrule
-        PDD & LR & 0.8648 & 0 & 0.6469 & 1 & 0.5219 & 0 \\
-        & DT & 0.8435 & 1 & 0.8326 & 15 & 0.4924 & 1 \\
-        & RF & 0.7831 & 1 & 0.7324 & 4 & 0.5099 & 0 \\\bottomrule
-    \end{tabular}
-\end{table}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+cat(generate_latex_table("Hyperplane"))
+```
+
 
 An examination of the train and test set accuracies reveals a potential overfitting issue. The training accuracy for LR was $0.7320$, while the test accuracy was 0.6165 for 10 batches, $0.6717$ for $20$ batches, and $0.5113$ for $30$ batches. Similarly, DT and RF models also showed discrepancies between train and test accuracies, suggesting that the models may be overfitting the train data. This overfitting likely impacts the drift detection capabilities of PDD, as evidenced by the reduced number of detected drifts in comparison to other methods when overfitting is present.
 
@@ -484,44 +506,11 @@ Overall, the PDD method demonstrates a balanced approach by maintaining competit
 
 The results for the \texttt{NOAA} dataset in Table~\ref{tab:exp_NOAA} indicate that the PDD method did not consistently perform well across different batch sizes, showing notable effectiveness only at the $20$ batches. Specifically, for the LR model, PDD achieved an accuracy of $0.7649$ with $10$ batches, improved slightly to $0.7694$ with $20$ batches, and reached $0.7708$ with $30$ batches. However, the number of detected drifts remained minimal, with $0$ drifts detected at $10$ and $30$ batches and only two drifts detected at $20$ batches. Similarly, for the DT model, PDD detected a few drifts, with two drifts at $10$ batches, none at $20$ batches, and three drifts at $30$ batches. In contrast, the RF model showed a different pattern, where PDD detected seven drifts at $10$ batches, none at $20$ batches, and sixteen drifts at $30$ batches.
 
-\begin{table}[H]
-    \centering
-    \small
-    \caption{The results of experiments on the \texttt{NOAA} dataset}
-    \label{tab:exp_NOAA}
-    \begin{tabular}{llcccccc}\toprule
-        && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
-        && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
-        HDDM-A & LR & 0.7736 & 5 & 0.7696 & 7 & 0.7777 & 3 \\
-        & DT & 0.7293 & 8 & 0.7435 & 9 & 0.7440 & 8 \\
-        & RF & 0.7803 & 1 & 0.7783 & 4 & 0.7766 & 3 \\
-        \midrule
-        HDDM-W & LR & 0.7736 & 7 & 0.7712 & 12 & 0.7799 & 12 \\
-        & DT & 0.7385 & 10 & 0.7345 & 16 & 0.7385 & 23 \\
-        & RF & 0.7868 & 4 & 0.7835 & 10 & 0.7821 & 9 \\
-        \midrule
-        KSWIN & LR & 0.7755 & 10 & 0.7755 & 20 & 0.7788 & 27 \\
-        & DT & 0.7385 & 10 & 0.7334 & 20 & 0.7437 & 29 \\
-        & RF & 0.7899 & 10 & 0.7913 & 19 & 0.7940 & 28 \\
-        \midrule
-        PH & LR & 0.7707 & 3 & 0.7680 & 3 & 0.7792 & 3 \\
-        & DT & 0.7402 & 2 & 0.7387 & 2 & 0.7276 & 2 \\
-        & RF & 0.7836 & 2 & 0.7791 & 3 & 0.7772 & 3 \\
-        \midrule
-        DDM & LR & 0.7716 & 4 & 0.7746 & 10 & 0.7715 & 10 \\
-        & DT & 0.7422 & 3 & 0.7334 & 20 & 0.7398 & 21 \\
-        & RF & 0.7803 & 1 & 0.7905 & 12 & 0.7832 & 11 \\
-        \midrule
-        EDDM & LR & 0.7755 & 10 & 0.7755 & 20 & 0.7780 & 30 \\
-        & DT & 0.7385 & 10 & 0.7334 & 20 & 0.7406 & 30 \\
-        & RF & 0.7899 & 10 & 0.7926 & 20 & 0.7951 & 30 \\
-        \midrule
-        PDD & LR & 0.7649 & 0 & 0.7694 & 2 & 0.7708 & 0 \\
-        & DT & 0.7264 & 2 & 0.7403 & 0 & 0.7352 & 3 \\
-        & RF & 0.7880 & 7 & 0.7676 & 0 & 0.7886 & 16 \\\bottomrule
-    \end{tabular}
-\end{table}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+cat(generate_latex_table("NOAA"))
+```
+
 
 An examination of the train and test accuracies reveals that overfitting is primarily present in the RF model. The RF model exhibits an exceptionally high train accuracy of $0.9998$ compared to its test accuracies, which range from $0.7676$ to $0.8338$ across different batch sizes. This significant discrepancy suggests that the RF model is overfitting the train set, which may impact the effectiveness of the PDD method in drift detection for this particular model. In contrast, the LR and DT models show relatively smaller gaps between train and test accuracies, indicating that overfitting is not a major concern for these models.
 
@@ -537,45 +526,11 @@ Overall, the PDD method demonstrates limited effectiveness for the NOAA dataset,
 
 The results for the \texttt{Ozone} dataset demonstrate varied performances across different drift detection methods seen in Table~\ref{tab:exp_Ozone}, models, and batch sizes. Notably, the PDD method showed moderate accuracy levels, achieving $0.9353$ with $10$ batches, $0.8984$ with $20$ batches, and $0.8724$ with $30$ batches in the LR model. While PDD maintained a consistent number of detected drifts across batch sizes for the LR model, its performance slightly declined as the number of batches increased.
 
-\begin{table}[H]
-    \centering
-    \small
-    \caption{The results of experiments on the \texttt{Ozone} dataset}
-    \label{tab:exp_Ozone}
-    \begin{tabular}{llcccccc}\toprule
-        && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
-        && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
-        HDDM-A & LR & 0.9294 & 0 & 0.8942 & 2 & 0.8116 & 0 \\
-        & DT & 0.9487 & 0 & 0.9101 & 1 & 0.9036 & 2 \\
-        & RF & 0.9497 & 0 & 0.9427 & 1 & 0.9374 & 0 \\
-        \midrule
-        HDDM-W & LR & 0.9294 & 0 & 0.8907 & 1 & 0.8526 & 1 \\
-        & DT & 0.9487 & 0 & 0.9101 & 1 & 0.9122 & 2 \\
-        & RF & 0.9519 & 1 & 0.9427 & 1 & 0.9401 & 1 \\
-        \midrule
-        KSWIN & LR & 0.9396 & 3 & 0.9164 & 2 & 0.9144 & 5 \\
-        & DT & 0.9444 & 3 & 0.9242 & 4 & 0.9099 & 5 \\
-        & RF & 0.9519 & 1 & 0.9383 & 4 & 0.9437 & 3 \\
-        \midrule
-        PH & LR & 0.9294 & 0 & 0.8502 & 0 & 0.8116 & 0 \\
-        & DT & 0.9487 & 0 & 0.8911 & 0 & 0.8725 & 0 \\
-        & RF & 0.9497 & 0 & 0.9422 & 0 & 0.9374 & 0 \\
-        \midrule
-        DDM & LR & 0.9406 & 4 & 0.9155 & 6 & 0.8706 & 2 \\
-        & DT & 0.9358 & 7 & 0.9301 & 6 & 0.9329 & 4 \\
-        & RF & 0.9503 & 2 & 0.9417 & 2 & 0.9437 & 3 \\
-        \midrule
-        EDDM & LR & 0.9396 & 2 & 0.9183 & 4 & 0.8842 & 6 \\
-        & DT & 0.9412 & 2 & 0.9164 & 4 & 0.9185 & 5 \\
-        & RF & 0.9513 & 2 & 0.9441 & 3 & 0.9437 & 3 \\
-        \midrule
-        PDD & LR & 0.9353 & 1 & 0.8984 & 2 & 0.8724 & 2 \\
-        & DT & 0.9449 & 1 & 0.8915 & 1 & 0.9198 & 10 \\
-        & RF & 0.9497 & 2 & 0.9422 & 0 & 0.9455 & 12 \\\bottomrule
-    \end{tabular}
-\end{table}
 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+cat(generate_latex_table("Ozone"))
+```
 In the DT model, PDD detected one drift with $10$ and $20$ batches, but this number surged to ten drifts at $30$ batches. For the RF model, PDD identified two drifts at $10$ batches, none at $20$ batches, and twelve drifts at $30$ batches. This variability, especially the significant increase in drift detections for the DT and RF models at higher batch sizes, suggests that PDD's sensitivity to drifts may be influenced by the complexity and behavior of the underlying models.
 
 A closer examination of the train and test accuracies reveals that overfitting appears to be a concern primarily within the RF model. The RF model exhibits exceptionally high train accuracies of $0.9985$, $1$, and $1$ across all batch sizes, compared to its test accuracies of $0.9882$, $0.9806$, and $1$. This disparity indicates that the RF model is likely overfitting the train data, which can adversely affect the drift detection capabilities of PDD. Specifically, in scenarios where overfitting is present, such as with the RF model at $30$ batches, PDD detected twelve drifts, which is lower compared to other methods like KSWIN and EDDM which detected up to $30$ drifts. This behavior suggests that PDD may be less sensitive to drifts when the model is overfitting, potentially reducing the detection of true drifts in favor of minimizing false positives.
@@ -594,44 +549,10 @@ In summary, the PDD method demonstrated moderate effectiveness for the Ozone dat
 
 The results for the \texttt{Elec2} dataset reveal distinct performance patterns across various drift detection methods, models, and batch sizes. Focusing on the PDD method, it demonstrated a balanced approach in terms of accuracy and drift detection. Specifically, for the Logistic Regression (LR) model, PDD achieved accuracies of $0.6740$, $0.7349$, and $0.7402$ across $10$, $20$, and $30$ batches, respectively. Similarly, in the DT model, PDD maintained consistent accuracy levels of $0.7253$, $0.7392$, and $0.7429$, while in the RF model, accuracies were at $0.7093$, $0.7311$, and $0.7393$ for the respective batch sizes.
 
-\begin{table}[H]
-    \centering
-    \small
-    \caption{The results of experiments on the \texttt{Elec2} dataset}
-    \label{tab:exp_Elec2}
-    \begin{tabular}{llcccccc}\toprule
-        && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
-        && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} & \textbf{accuracy} & \textbf{\#drifts} \\\midrule
-        HDDM-A & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
-        \midrule
-        HDDM-W & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
-        \midrule
-        KSWIN & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
-        \midrule
-        PH & LR & 0.7215 & 9 & 0.7342 & 13 & 0.7390 & 16 \\
-        & DT & 0.7342 & 9 & 0.7417 & 15 & 0.7502 & 16 \\
-        & RF & 0.6992 & 8 & 0.7131 & 12 & 0.7359 & 16 \\
-        \midrule
-        DDM & LR & 0.6983 & 10 & 0.6836 & 20 & 0.7099 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
-        \midrule
-        EDDM & LR & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & DT & 0.7255 & 10 & 0.7255 & 20 & 0.7255 & 30 \\
-        & RF & 0.7029 & 10 & 0.7253 & 20 & 0.7356 & 30 \\
-        \midrule
-        PDD & LR & 0.6740 & 8 & 0.7349 & 4 & 0.7402 & 12 \\
-        & DT & 0.7253 & 1 & 0.7392 & 1 & 0.7429 & 5 \\
-        & RF & 0.7093 & 3 & 0.7311 & 0 & 0.7393 & 1 \\\bottomrule
-    \end{tabular}
-\end{table}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+cat(generate_latex_table("Elec2"))
+```
 
 When comparing PDD to other drift detection methods, it is evident that PDD offers a moderate number of drift detections. For instance, in the LR model, PDD detected $8$, $4$, and $12$ drifts across $10$, $20$, and $30$ batches. In the DT model, drift detections were minimal, with only $1$ drift detected at both $10$ and $20$ batches, increasing to $5$ drifts at $30$ batches. The RF model showed $3$, $0$, and $1$ drifts detected by PDD across the same batch sizes. This controlled drift detection suggests that PDD is effective in identifying significant changes without being overly sensitive, thereby reducing the likelihood of false positives.
 
@@ -655,28 +576,12 @@ For the RF model applied to the \texttt{Elec2} dataset, drift was detected in th
 
 The results for the \texttt{Friedman} dataset in Table~\ref{tab:exp_Friedman}, which pertains to a regression task, exhibit distinct performance patterns across various drift detection methods, models, and batch sizes. Focusing on the PDD method, it demonstrated a balanced approach in terms of both metric values and the number of detected drifts. Specifically, for the LR model, PDD achieved RMSE values of $2.8041$, $2.8073$, and $2.7998$ across $10$, $20$, and $30$ batches, respectively, while detecting $3$, $2$, and $1$ drifts. In the DT model, PDD maintained stable RMSE of $3.3014$, $3.2936$, and $3.2670$, with drift detections of $3$, $2$, and $2$ across the same batch sizes. Similarly, for the RF model, the RMSE values of the PDD method are $1.9066$, $1.9271$, and $1.9516$, detecting $4$, $9$, and $9$ drifts respectively. This consistent performance indicates that PDD effectively maintains model accuracy while controlling the number of drift detections, thereby reducing the likelihood of unnecessary drift alarms.
 
-\begin{table}[H]
-    \centering
-    \small
-    \caption{The results of experiments on the \texttt{Friedman} dataset}
-    \label{tab:exp_Friedman}
-    \begin{tabular}{llcccccc}\toprule
-        && \multicolumn{6}{c}{\textbf{\#batch}}\\\cmidrule(lr){3-8}
-        && \multicolumn{2}{c}{\textbf{10}}    & \multicolumn{2}{c}{\textbf{20}} & \multicolumn{2}{c}{\textbf{30}} \\\cmidrule(lr){3-8}
-        \textbf{Method} & \textbf{Model} & \textbf{RMSE} & \textbf{\#drifts} & \textbf{RMSE} & \textbf{\#drifts} & \textbf{RMSE} & \textbf{\#drifts} \\\midrule
-        KSWIN & LR & 2.8029 & 10 & 2.8007 & 19 & 2.7906 & 30 \\
-        & DT & 3.2977 & 10 & 3.2765 & 19 & 3.2921 & 23 \\
-        & RF & 1.9154 & 10 & 1.9264 & 20 & 1.9445 & 24 \\
-        \midrule
-        PH & LR & 2.8023 & 5 & 2.7974 & 10 & 2.7812 & 9 \\
-        & DT & 3.3254 & 9 & 3.2813 & 16 & 3.2752 & 16 \\
-        & RF & 1.9631 & 3 & 2.0153 & 5 & 2.0399 & 6 \\
-        \midrule
-        PDD & LR & 2.8041 & 3 & 2.8073 & 2 & 2.7998 & 1 \\
-        & DT & 3.3014 & 3 & 3.2936 & 2 & 3.2670 & 2 \\
-        & RF & 1.9066 & 4 & 1.9271 & 9 & 1.9516 & 9 \\\bottomrule
-    \end{tabular}
-\end{table}
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+cat(generate_latex_table("Friedman"))
+```
+
 
 In comparison, the KSWIN method consistently detected a higher number of drifts across all models and batch sizes. For instance, in the LR model, KSWIN identified $10$, $19$, and $30$ drifts with RMSE decreasing slightly from $2.8029$ to $2.7906$ as the number of batches increased. Similarly, in the DT and RF models, KSWIN detected $10$, $19$, and $23$ drifts and $10$, $20$, and $24$ drifts respectively, with RMSE remaining relatively stable or showing minor improvements. This high sensitivity allows KSWIN to identify more drifts, which can be advantageous for capturing real changes in the data stream but may also lead to a higher risk of false positives.
 
@@ -729,6 +634,209 @@ Commission under grant no. 22LÖT175.
 
 The materials for reproducing the experiments performed and the dataset are
 accessible in the following repository: \url{https://github.com/ugurdar/datadrift\_RJournal}
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+SEA <- read.csv("scripts/results_tables/experiments_SEA_results.csv")
+SEA$Dataset <- "SEA"
+Hyperplane <- read.csv("scripts/results_tables/experiments_Hyperplane_results.csv")
+Hyperplane$Dataset <- "Hyperplane"
+NOAA <- read.csv("scripts/results_tables/experiments_NOAA_results.csv")
+NOAA$Dataset <- "NOAA"
+Ozone <- read.csv("scripts/results_tables/experiments_Ozone_results.csv")
+Ozone$Dataset <- "Ozone"
+Elec2 <- read.csv("scripts/results_tables/experiments_Elec2_results.csv")
+Elec2$Dataset <- "Elec2"
+Friedman <- read.csv("scripts/results_tables/experiments_Friedman_results.csv")
+Friedman$Dataset <- "Friedman"
+
+df <- rbind(SEA,Hyperplane,NOAA,Ozone,Elec2,Friedman)
+
+Batch_sizes <- df |>
+  group_by(Dataset,Batch) |>
+  filter(Model == "batch sizes") |>
+  select(train = Mean_Accuracy, test = Drift_Count) |> 
+  unique()
+
+generate_batch_table <- function(data) {
+  # Veriyi geniş forma dönüştür
+  formatted_data <- data %>%
+    pivot_wider(
+      names_from = Batch,
+      values_from = c(train, test),
+      names_glue = "{.value}_{Batch}"
+    )
+  
+  # LaTeX tablosunun başlangıcı
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The number of observations in the batches}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:batch_number}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{lrrrrrr}\\toprule\n")
+  latex_output <- paste0(latex_output, "                & \\multicolumn{6}{c}{\\textbf{\\#batch}}\\\\\\cmidrule(lr){2-7}\n")
+  latex_output <- paste0(latex_output, "                & \\multicolumn{2}{c}{\\textbf{10}} & \\multicolumn{2}{c}{\\textbf{20}} & \\multicolumn{2}{c}{\\textbf{30}} \\\\\\cmidrule(lr){2-7}\n")
+  latex_output <- paste0(latex_output, "        \\textbf{Dataset} & \\textbf{train} & \\textbf{test} & \\textbf{train} & \\textbf{test} & \\textbf{train} & \\textbf{test} \\\\\\midrule\n")
+  
+  # Her veri kümesi için satırları ekle
+  for (i in seq_len(nrow(formatted_data))) {
+    row <- formatted_data[i, ]
+    latex_output <- paste0(
+      latex_output,
+      "        \\texttt{", row$Dataset, "} & ", 
+      row$train_10, " & ", row$test_10, " & ",
+      row$train_20, " & ", row$test_20, " & ",
+      row$train_30, " & ", row$test_30, " \\\\\n"
+    )
+  }
+  
+  # Tabloyu kapat
+  latex_output <- paste0(latex_output, "        \\bottomrule\n")
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  return(latex_output)
+}
+
+cat(generate_batch_table(Batch_sizes))
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+
+vip <- df  |> group_by(Dataset,Model.1,Batch) |> select(Dataset,Model = Model.1, Batch, most_important) |> unique()
+vip <- vip |> mutate(Model=ifelse(Model == "Linear R.","LR",Model))
+
+generate_vip_table <- function(vip) {
+  # Veriyi benzersizleştir
+  vip <- vip %>%
+    distinct(Dataset, Model, Batch, .keep_all = TRUE)  # Benzersizleştir
+  
+  # Pivot işlemi
+  formatted_data <- vip %>%
+    pivot_wider(
+      names_from = Batch,
+      values_from = most_important
+    ) 
+  
+  # Alt çizgi (_) karakterlerini kaçış karakterine dönüştür
+  formatted_data <- formatted_data %>%
+    mutate(across(starts_with("10"):starts_with("30"), ~ gsub("_", "\\_", ., fixed = TRUE)))
+  
+  # LaTeX tablosu oluşturma
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The most important variables in the batches}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:vip_batch}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{llccc}\\toprule\n")
+  latex_output <- paste0(latex_output, "                            &       & \\multicolumn{3}{c}{\\textbf{\\#batch}}\\\\\\cmidrule(lr){3-5}\n")
+  latex_output <- paste0(latex_output, "        \\textbf{Dataset}    & \\textbf{Model} & \\textbf{10}                    & \\textbf{20}                    & \\textbf{30} \\\\\\midrule\n")
+  
+  # Her bir dataset ve model için satırları ekleme
+  for (dataset in unique(formatted_data$Dataset)) {
+    dataset_data <- formatted_data %>% filter(Dataset == dataset)
+    first_row <- TRUE
+    for (i in seq_len(nrow(dataset_data))) {
+      row <- dataset_data[i, ]
+      latex_output <- paste0(
+        latex_output,
+        ifelse(first_row, paste0("        \\texttt{", dataset, "} "), "                            "),
+        "& ", row$Model, 
+        " & \\texttt{", row[[3]], "}", 
+        " & \\texttt{", row[[4]], "}", 
+        " & \\texttt{", row[[5]], "} \\\\\n"
+      )
+      first_row <- FALSE
+    }
+    latex_output <- paste0(latex_output, "        \\midrule\n")
+  }
+  
+  # Tabloyu kapat
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  return(latex_output)
+}
+# Örnek kullanım
+vip_latex_table <- generate_vip_table(vip)
+
+# Konsola yazdır
+cat(vip_latex_table)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,  results='asis'}
+accuracy <- df |> filter(Model == "Base Train" | Model == "Base Test") |> mutate(type = ifelse(Model == "Base Train","train","test")) |> select(Dataset,Model = Model.1, Batch, type, accuracy = Mean_Accuracy) |>group_by(Dataset,Model,Batch,type) |>  unique()
+
+accuracy <- accuracy |> mutate(Model=ifelse(Model == "Linear R.","LR",Model))
+
+generate_accuracy_table <- function(data) {
+  # Veri genişletme: Batch ve type değerlerini kullanarak genişletiyoruz
+  formatted_data <- data %>%
+    pivot_wider(
+      names_from = c(Batch, type),
+      values_from = accuracy,
+      names_glue = "{type}_{Batch}"  # "test_10", "train_10" gibi adlar oluşturulur
+    ) 
+  
+  # LaTeX tablosu başlatma
+  latex_output <- "\\begin{table}[H]\n"
+  latex_output <- paste0(latex_output, "    \\centering\n")
+  latex_output <- paste0(latex_output, "    \\small\n")
+  latex_output <- paste0(latex_output, "    \\caption{The accuracies of the models in the batches}\n")
+  latex_output <- paste0(latex_output, "    \\label{tab:acc_batch}\n")
+  latex_output <- paste0(latex_output, "    \\begin{tabular}{llcccccc}\\toprule\n")
+  latex_output <- paste0(latex_output, "    & & \\multicolumn{6}{c}{\\textbf{\\#batch}}\\\\\n")
+  latex_output <- paste0(latex_output, "    \\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "    & & \\multicolumn{2}{c}{\\textbf{10}} & \\multicolumn{2}{c}{\\textbf{20}} & \\multicolumn{2}{c}{\\textbf{30}} \\\\\n")
+  latex_output <- paste0(latex_output, "    \\cmidrule(lr){3-8}\n")
+  latex_output <- paste0(latex_output, "    \\textbf{Dataset} & \\textbf{Model} & \\textbf{test} & \\textbf{train} & \\textbf{test} & \\textbf{train} & \\textbf{test} & \\textbf{train} \\\\\n")
+  latex_output <- paste0(latex_output, "    \\midrule\n")
+  
+  # Her dataset ve model için satırları ekleme
+  for (dataset in unique(formatted_data$Dataset)) {
+    dataset_data <- formatted_data %>% filter(Dataset == dataset)
+    first_row <- TRUE
+    for (i in seq_len(nrow(dataset_data))) {
+      row <- dataset_data[i, ]
+      latex_output <- paste0(
+        latex_output,
+        ifelse(first_row, paste0("    \\texttt{", dataset, "} "), "                          "),
+        "& ", row$Model, 
+        " & ", format(row$test_10, digits = 4, nsmall = 4),
+        " & ", format(row$train_10, digits = 4, nsmall = 4),
+        " & ", format(row$test_20, digits = 4, nsmall = 4),
+        " & ", format(row$train_20, digits = 4, nsmall = 4),
+        " & ", format(row$test_30, digits = 4, nsmall = 4),
+        " & ", format(row$train_30, digits = 4, nsmall = 4),
+        " \\\\\n"
+      )
+      first_row <- FALSE
+    }
+    latex_output <- paste0(latex_output, "    \\midrule\n")
+  }
+  
+  # Tabloyu kapatma
+  latex_output <- paste0(latex_output, "    \\end{tabular}\n")
+  latex_output <- paste0(latex_output, "\\end{table}\n")
+  
+  return(latex_output)
+}
+
+# Fonksiyonu çalıştır
+accuracy_latex_table <- generate_accuracy_table(accuracy)
+
+# Sonuçları göster
+cat(accuracy_latex_table)
+
+
+
+```
+
+
 
 <!-- # Background -->
 
