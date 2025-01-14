@@ -46,7 +46,7 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 elec_rf_results <- cbind(df_results,Model="RF")
 
 elec_results <- rbind(elec_lr_results,elec_dt_results,elec_rf_results)
-write.csv(elec_results,file=paste0("experiments_Elec2_","results.csv"),row.names = FALSE)
+write.csv(elec_results,file=paste0("scripts/results_tables/experiments_Elec2_","results.csv"),row.names = FALSE)
 
 # Friedman
 ## Logistic Regression - Friedman
@@ -91,7 +91,7 @@ friedman_rf_results <- cbind(df_results,Model="RF")
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
 
 friedman_results <- rbind(friedman_lr_results,friedman_dt_results,friedman_rf_results)
-write.csv(friedman_results,file=paste0("experiments_Friedman_","results.csv"),row.names = FALSE)
+write.csv(friedman_results,file=paste0("scripts/results_tables/experiments_Friedman_","results.csv"),row.names = FALSE)
 
 
 
@@ -138,7 +138,7 @@ hyperplane_rf_results <- cbind(df_results,Model="RF")
 write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names = FALSE)
 
 hyperplane_results <- rbind(hyperplane_lr_results,hyperplane_dt_results,hyperplane_rf_results)
-write.csv(hyperplane_results,file=paste0("experiments_Hyperplane_","results.csv"),row.names = FALSE)
+write.csv(hyperplane_results,file=paste0("scripts/results_tables/experiments_Hyperplane_","results.csv"),row.names = FALSE)
 
 
 
@@ -183,7 +183,7 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 NOAA_rf_results <- cbind(df_results,Model="RF")
 
 NOAA_results <- rbind(NOAA_lr_results,NOAA_dt_results,NOAA_rf_results)
-write.csv(NOAA_results,file=paste0("experiments_NOAA_","results.csv"),row.names = FALSE)
+write.csv(NOAA_results,file=paste0("scripts/results_tables/experiments_NOAA_","results.csv"),row.names = FALSE)
 
 
 
@@ -228,7 +228,7 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 Ozone_rf_results <- cbind(df_results,Model="RF")
 
 Ozone_results <- rbind(Ozone_lr_results,Ozone_dt_results,Ozone_rf_results)
-write.csv(Ozone_results,file=paste0("experiments_Ozone_","results.csv"),row.names = FALSE)
+write.csv(Ozone_results,file=paste0("scripts/results_tables/experiments_Ozone_","results.csv"),row.names = FALSE)
 
 # SEA
 ## Logistic - SEA
@@ -279,5 +279,5 @@ write.csv(df_results,file=paste0(experiment_result_path,"results.csv"),row.names
 
 
 SEA_results <- rbind(SEA_lr_results,SEA_dt_results,SEA_rf_results)
-write.csv(SEA_results,file=paste0("experiments_SEA_","results.csv"),row.names = FALSE)
+write.csv(SEA_results,file=paste0("scripts/results_tables/experiments_SEA_","results.csv"),row.names = FALSE)
 
