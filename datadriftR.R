@@ -23,10 +23,10 @@ knitr::include_graphics("figures/pdd_resize.png")
 # rmarkdown::render("datadriftR.Rmd", output_format = "all")
   library(dplyr)
   library(tidyr)
-generate_latex_table <- function(experiment_name, base_path = "scripts/results_tables/") {
+generate_latex_table <- function(experiment_name, base_path = "results_tables/") {
   # Dosya yolu oluştur
   file_path <- paste0(base_path, "experiments_", experiment_name, "_results.csv")
-  
+  print(file_path)
   # CSV dosyasını oku
   data <- read.csv(file_path)
   
@@ -148,17 +148,17 @@ cat(generate_latex_table("Friedman"))
 
 
 ## ----echo=FALSE, message=FALSE, warning=FALSE,  results='asis'----------------
-SEA <- read.csv("scripts/results_tables/experiments_SEA_results.csv")
+SEA <- read.csv("results_tables/experiments_SEA_results.csv")
 SEA$Dataset <- "SEA"
-Hyperplane <- read.csv("scripts/results_tables/experiments_Hyperplane_results.csv")
+Hyperplane <- read.csv("results_tables/experiments_Hyperplane_results.csv")
 Hyperplane$Dataset <- "Hyperplane"
-NOAA <- read.csv("scripts/results_tables/experiments_NOAA_results.csv")
+NOAA <- read.csv("results_tables/experiments_NOAA_results.csv")
 NOAA$Dataset <- "NOAA"
-Ozone <- read.csv("scripts/results_tables/experiments_Ozone_results.csv")
+Ozone <- read.csv("results_tables/experiments_Ozone_results.csv")
 Ozone$Dataset <- "Ozone"
-Elec2 <- read.csv("scripts/results_tables/experiments_Elec2_results.csv")
+Elec2 <- read.csv("results_tables/experiments_Elec2_results.csv")
 Elec2$Dataset <- "Elec2"
-Friedman <- read.csv("scripts/results_tables/experiments_Friedman_results.csv")
+Friedman <- read.csv("results_tables/experiments_Friedman_results.csv")
 Friedman$Dataset <- "Friedman"
 
 df <- rbind(SEA,Hyperplane,NOAA,Ozone,Elec2,Friedman)

@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-Predictive models often degrade due to data drift, particularly concept drift, where the relationship between variables and the response changes. Traditional detection methods based on accuracy or variable distributions often miss subtle concept drifts. This paper presents \CRANpkg{drifter}, an R package for detecting concept drift, and introduces a novel method, Profile Drift Detection (PDD). PDD leverages explainable artificial intelligence tool Partial Dependence Profiles (PDPs) to detect and explain drift causes. It quantifies PDP changes using innovative metrics, balancing sensitivity and computational efficiency. Aligned with MLOps practices, this approach emphasizes model monitoring and adaptive retraining in dynamic environments. Experiments on synthetic and real-world datasets show that PDD outperforms existing methods, maintaining high accuracy while ensuring stability. The results demonstrate its robustness for real-time applications and ability to adapt models effectively. The paper discusses its advantages, limitations, and potential extensions for broader applications.
+Predictive models often degrade due to data drift, particularly concept drift, where the relationship between variables and the response changes. Traditional detection methods based on accuracy or variable distributions often miss subtle concept drifts. This paper presents datadriftR, an R package for detecting concept drift, and introduces a novel method, Profile Drift Detection (PDD). PDD leverages explainable artificial intelligence tool Partial Dependence Profiles (PDPs) to detect and explain drift causes. It quantifies PDP changes using innovative metrics, balancing sensitivity and computational efficiency. Aligned with MLOps practices, this approach focuses on model monitoring and adaptive retraining in dynamic environments. Experiments on synthetic and real-world datasets show that PDD outperforms existing methods, maintaining high accuracy while ensuring stability. The results demonstrate its robustness for real-time applications and ability to adapt models effectively. The paper discusses its advantages, limitations, and potential extensions for broader applications.
 }
 
 \hypertarget{introduction}{%
@@ -344,6 +344,8 @@ In this section, the results of experiments conducted on the datasets---\texttt{
 
 Table\textasciitilde{}\ref{tab:exp_SEA} examines the performance of several drift detection methods across the models. The PDD method generally demonstrated high accuracy rates. Specifically, with 10 batches, the LR and RF models showed competitive or superior performance compared to other methods. On the other hand, methods like KSWIN and EDDM also achieved high accuracy rates but detected a considerably higher number of drifts in some cases, indicating that these methods might be overly sensitive. The HDDM-A and HDDM-W methods detected a limited number of drifts, especially with lower batch numbers, and showed similar performance to PDD in terms of accuracy. The PH method exhibited stable performance in drift detection but did not achieve accuracy rates as high as PDD. The DDM method either failed to detect drifts or detected very few drifts in some batch sizes, suggesting that it is less sensitive.
 
+{[}1{]} ``results\_tables/experiments\_SEA\_results.csv''
+
 \begin{table}[H]
     \centering
     \small
@@ -426,7 +428,9 @@ The variable \texttt{V2} has been identified as the most important variable in t
 \hypertarget{section-1}{%
 \subsubsection{\texorpdfstring{\texttt{Hyperplane}}{}}\label{section-1}}
 
-The results in Table\textasciitilde{}\ref{tab:exp_Hyperplane} demonstrate that, for the \texttt{Hyperplane} dataset, the PDD method generally showed competitive accuracy rates at 1111 \(10\) and \(20\) for DT and RF models. Specifically, the LR model achieved an accuracy of \(0.8648\) with \(10\) batches, which was comparable to methods like KSWIN and EDDM. However, as the number of batches increased to \(30\), the accuracy of PDD decreased significantly, reaching \(0.5219\) for the LR model, indicating diminished performance outside the \(20\) batches.
+The results in Table\textasciitilde{}\ref{tab:exp_Hyperplane} demonstrate that, for the \texttt{Hyperplane} dataset, the PDD method generally showed competitive accuracy rates at \(10\) and \(20\) for DT and RF models. Specifically, the LR model achieved an accuracy of \(0.8648\) with \(10\) batches, which was comparable to methods like KSWIN and EDDM. However, as the number of batches increased to \(30\), the accuracy of PDD decreased significantly, reaching \(0.5219\) for the LR model, indicating diminished performance outside the \(20\) batches.
+
+{[}1{]} ``results\_tables/experiments\_Hyperplane\_results.csv''
 
 \begin{table}[H]
     \centering
@@ -474,13 +478,15 @@ When utilizing PDP values calculated between the train and test sets, the PDD me
 
 Methods such as KSWIN and EDDM consistently detected a higher number of drifts across different batch sizes, which underscores their sensitivity in identifying changes but also increases the risk of false positives. HDDM-A and HDDM-W detected fewer drifts, especially at lower batch sizes, maintaining relatively stable accuracy but not outperforming PDD in some cases. PH and DDM exhibited moderate performance; PH detected fewer drifts while maintaining reasonable accuracy, whereas DDM's performance was inconsistent, particularly in RF models where it detected very few drifts.
 
-In terms of model-specific performance, LR models benefited from the PDD method by maintaining high accuracy with a controlled number of drift detections at 20 batches 1111 (belki 10. batch için de genelleyebiliriz?) for DT and RF models, demonstrating the method's potential effectiveness under optimal conditions. DT models showed stable performance with PDD, although the number of detected drifts varied more significantly at higher batch sizes. RF models exhibited lower overall accuracy compared to LR and DT models, and while PDD provided a balanced approach by detecting fewer drifts, this was particularly noticeable in scenarios where overfitting may have affected model performance.
+In terms of model-specific performance, LR models benefited from the PDD method by maintaining high accuracy with a controlled number of drift detections at 20 batches for DT and RF models, demonstrating the method's potential effectiveness under optimal conditions. DT models showed stable performance with PDD, although the number of detected drifts varied more significantly at higher batch sizes. RF models exhibited lower overall accuracy compared to LR and DT models, and while PDD provided a balanced approach by detecting fewer drifts, this was particularly noticeable in scenarios where overfitting may have affected model performance.
 
 Overall, the PDD method demonstrates a balanced approach by maintaining competitive accuracy and controlling the number of drift detections in the Hyperplane dataset, particularly at \(20\) batches. However, its performance diminishes outside this scenario, likely due to overfitting issues indicated by the discrepancies between train and test accuracies. While PDD effectively reduces false positive drift detections in overfitting conditions, this also suggests a limitation in its sensitivity to actual drifts when model performance is compromised. Consequently, while PDD offers advantages in certain contexts, its effectiveness may be contingent on the model's generalization capabilities and the specific characteristics of the data stream.
 
 \subsubsection{\texttt{NOAA}}
 
 The results for the \texttt{NOAA} dataset in Table\textasciitilde{}\ref{tab:exp_NOAA} indicate that the PDD method did not consistently perform well across different batch sizes, showing notable effectiveness only at the \(20\) batches. Specifically, for the LR model, PDD achieved an accuracy of \(0.7649\) with \(10\) batches, improved slightly to \(0.7694\) with \(20\) batches, and reached \(0.7708\) with \(30\) batches. However, the number of detected drifts remained minimal, with \(0\) drifts detected at \(10\) and \(30\) batches and only two drifts detected at \(20\) batches. Similarly, for the DT model, PDD detected a few drifts, with two drifts at \(10\) batches, none at \(20\) batches, and three drifts at \(30\) batches. In contrast, the RF model showed a different pattern, where PDD detected five drifts at \(10\) batches, none at \(20\) batches, and twenty-two drifts at \(30\) batches.
+
+{[}1{]} ``results\_tables/experiments\_NOAA\_results.csv''
 
 \begin{table}[H]
     \centering
@@ -536,6 +542,8 @@ Overall, the PDD method demonstrates limited effectiveness for the NOAA dataset,
 
 The results for the \texttt{Ozone} dataset demonstrate varied performances across different drift detection methods seen in Table\textasciitilde{}\ref{tab:exp_Ozone}, models, and batch sizes. Notably, the PDD method showed moderate accuracy levels, achieving \(0.9353\) with \(10\) batches, \(0.8984\) with \(20\) batches, and \(0.8724\) with \(30\) batches in the LR model. While PDD maintained a consistent number of detected drifts across batch sizes for the LR model, its performance slightly declined as the number of batches increased.
 
+{[}1{]} ``results\_tables/experiments\_Ozone\_results.csv''
+
 \begin{table}[H]
     \centering
     \small
@@ -578,31 +586,21 @@ The results for the \texttt{Ozone} dataset demonstrate varied performances acros
 
 In the DT model, PDD detected one drift at \(20\) batch, but this number surged to ten drifts at \(30\) batches. For the RF model, PDD identified five drifts at \(10\) batches, none at \(20\) batches, and twelve drifts at \(30\) batches. This variability, especially the significant increase in drift detections for the DT and RF models at higher batch sizes, suggests that PDD's sensitivity to drifts may be influenced by the complexity and behavior of the underlying models.
 
-1111
-A closer examination of the train and test accuracies reveals that overfitting appears to be a concern primarily within the RF model. The RF model exhibits exceptionally high train accuracies of \(1\), \(1\), and \(1\) across all batch sizes, compared to its test accuracies of \(0.9941\), \(0.9806\), and \(1\). This disparity indicates that the RF model is likely overfitting the train data, which can adversely affect the drift detection capabilities of PDD. Specifically, in scenarios where overfitting is present, such as with the RF model at \(30\) batches, PDD detected twelve drifts, which is lower compared to other methods like KSWIN and EDDM which detected up to \(30\) drifts. This behavior suggests that PDD may be less sensitive to drifts when the model is overfitting, potentially reducing the detection of true drifts in favor of minimizing false positives.
-1111 buradaki drift sayıları overleafdeki makalede de aynı. drift sayısı up to 30 dediği için bu kısımda kararsız kaldım ve aşağıdaki paragrafı ekledim
-
 The examination of the target distribution in the dataset reveals a ratio of 2374 to 160, indicating an imbalanced dataset. Particularly when the batch size is 30, PDD identifies significantly more drifts compared to other methods, achieving the highest accuracy of 0.9455. Unlike other methods that focus solely on detecting drifts based on whether the response variable is correctly predicted, detecting changes in sensor data within this type of dataset is crucial. Furthermore, by comparing PDPs, it becomes possible to analyze in greater detail what kind of changes occurred in the sensors.
 
-1111
 Other drift detection methods exhibited varied performances. DDM, KSWIN, EDDM consistently detected a higher number of drifts across different batch sizes and models, indicating their high sensitivity to changes within the data stream. For instance, DDM detected up to 7 drifts in DT model with \(10\) batches. KSWIN detected up to five drifts in the LR model with \(30\) batches, while EDDM identified up to \(6\) drifts in the DT model under the same conditions. Although this high sensitivity can be beneficial for capturing real drifts, it also increases the risk of false positives, which may lead to unnecessary alerts in operational settings.
-1111
 
 HDDM-A and HDDM-W methods generally detected fewer drifts compared to KSWIN and EDDM. For example, HDDM-A detected up to two drifts in the LR model with \(20\) batches, whereas HDDM-W identified up to one drift in the LR model with \(20\) batches. These methods offer a balance between sensitivity and stability, avoiding excessive drift detections while still identifying significant changes.
 
-1111 Burayı silmeyi düşünüyorum hocam
-The PH and DDM methods showed relatively stable drift detection across different models and batch sizes. PH consistently detected fewer drifts, often registering zero drifts in the LR and RF models, while DDM detected a moderate number of drifts, varying from two to seven across different models and batch sizes. This stability makes PH and DDM suitable for scenarios where controlled drift detection is preferred.
-1111
-
 Additionally, the analysis of the most important variables revealed that the key attributes influencing model performance vary depending on both the batch size and the model used. For instance, in the LR model, the most important variable changed from \texttt{V26} with \(10\) batches to \texttt{V52} with \(20\) and \(30\) batches. Similarly, in the DT model, the most important variable shifted from \texttt{V31} with \(10\) batches to \texttt{V36} with higher batch sizes, and in the RF model, the importance transitioned from \texttt{V56} with \(10\) batches to \texttt{V61} with \(20\) and \(30\) batches. This variability underscores the dynamic nature of variable importance in response to different data conditions and model complexities, highlighting the need for adaptive variable selection strategies in drift detection.
-
-1111 Yukarıda eklediğim paragrafların birisinde imbalanced olmasından ve belli sensörlerdeki hataların tespiti için faydalı olabileceğinden bahsettim. Ya orayı değiştirmem gerekir ya da burada değişkilik yapmam gerekir gibi düşündüm hocam. Çünkü burada false alarmlara karşı PDD daha iyi gibi bir izlenim varken yukarıda bu alarmların önemli olabileceğine dair bir şey yazdım. Sizce hangisini değiştireyim?
 
 In summary, the PDD method demonstrated moderate effectiveness for the Ozone dataset, maintaining reasonable accuracy across different batch sizes but showing limited drift detection, particularly in the presence of overfitting in the RF model. While PDD offers a conservative approach to drift detection, reducing the likelihood of false positives, its sensitivity may be insufficient in complex models prone to overfitting. In contrast, methods like KSWIN and EDDM provide higher sensitivity and more consistent drift detections, albeit with a greater risk of false alarms. The variability in the most important variables across models and batch sizes further emphasizes the complexity of drift detection in dynamic data environments, suggesting that a combination of methods and adaptive variable selection may be necessary for optimal performance.
 
 \subsubsection{\texttt{Elec2}}
 
 The results for the \texttt{Elec2} dataset reveal distinct performance patterns across various drift detection methods, models, and batch sizes. Focusing on the PDD method, it demonstrated a balanced approach in terms of accuracy and drift detection. Specifically, for the Logistic Regression (LR) model, PDD achieved accuracies of \(0.6740\), \(0.7349\), and \(0.7402\) across \(10\), \(20\), and \(30\) batches, respectively. Similarly, in the DT model, PDD maintained consistent accuracy levels of \(0.7253\), \(0.7392\), and \(0.7449\), while in the RF model, accuracies were at \(0.7093\), \(0.7311\), and \(0.7393\) for the respective batch sizes.
+
+{[}1{]} ``results\_tables/experiments\_Elec2\_results.csv''
 
 \begin{table}[H]
     \centering
@@ -669,6 +667,8 @@ For the RF model applied to the \texttt{Elec2} dataset, drift was detected in th
 \subsubsection{\texorpdfstring{\texttt{Friedman}}{}}\label{section-2}}
 
 The results for the \texttt{Friedman} dataset in Table\textasciitilde{}\ref{tab:exp_Friedman}, which pertains to a regression task, exhibit distinct performance patterns across various drift detection methods, models, and batch sizes. Focusing on the PDD method, it demonstrated a balanced approach in terms of both metric values and the number of detected drifts. Specifically, for the LR model, PDD achieved RMSE values of \(2.8041\), \(2.8073\), and \(2.7998\) across \(10\), \(20\), and \(30\) batches, respectively, while detecting \(3\), \(2\), and \(1\) drifts. In the DT model, PDD maintained stable RMSE of \(3.3014\), \(3.2936\), and \(3.2670\), with drift detections of \(3\), \(2\), and \(2\) across the same batch sizes. Similarly, for the RF model, the RMSE values of the PDD method are \(1.9887\), \(1.8811\), and \(1.9355\), detecting \(7\), \(4\), and \(11\) drifts respectively. This consistent performance indicates that PDD effectively maintains model accuracy while controlling the number of drift detections, thereby reducing the likelihood of unnecessary drift alarms.
+
+{[}1{]} ``results\_tables/experiments\_Friedman\_results.csv''
 
 \begin{table}[H]
     \centering

@@ -10,14 +10,18 @@ Editor
 The R Journal  
 \bigskip
 
-Dear Professor Cook,
+Dear Professor,
 \bigskip
 
-Please consider our article titled "ToOoOlTiPs: An R Package for Customizable Tooltips in Interactive Graphics" for publication in the R Journal.
+We are pleased to submit our article, "datadriftR: An R Package for Concept Drift Detection in Predictive Models"", for consideration in The R Journal.
+
+This manuscript introduces `datadriftR`, an R package designed to detect concept drift in predictive models. It presents Profile Drift Detection (PDD), a novel method that leverages Partial Dependence Profiles (PDPs) to identify and explain the causes of drift. By quantifying PDP changes with innovative metrics, PDD balances sensitivity and computational efficiency.
+
+Aligned with MLOps practices, `datadriftR` supports model monitoring and adaptive retraining in dynamic environments. Experiments on synthetic and real-world datasets demonstrate its effectiveness, showing that PDD outperforms existing drift detection methods while maintaining high accuracy and stability.
 
 The manuscript introduces the new package called `ToOoOlTiPs` which provides examples on how to use interactive graphics in journal articles, and general tips for making an interesting contribution.
 
-We believe the readers of the R Journal will find this article helpful for their work because it provides generally useful instructions that will work for many purposes. 
+We believe this article will be valuable to The R Journal readership, as it provides a robust, explainable, and practical solution for managing concept drift in predictive modeling.
 
 \bigskip
 \bigskip
@@ -27,11 +31,11 @@ Regards,
     
     
     
-Quietest Quokka  
-Department of Letter Q  
-University of Little Mates  
-Somewhere, Australia  
-qquo@ulm.edu
+Ugur Dar  
+Department of Statistics  
+University of Eskisehir Technical University  
+Eskisehir, Turkiye  
+ugurdarr@gmail.com
 
 \bigskip
 
