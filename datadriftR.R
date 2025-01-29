@@ -26,7 +26,6 @@ knitr::include_graphics("figures/pdd_resize.png")
 generate_latex_table <- function(experiment_name, base_path = "results_tables/") {
   # Dosya yolu oluştur
   file_path <- paste0(base_path, "experiments_", experiment_name, "_results.csv")
-  print(file_path)
   # CSV dosyasını oku
   data <- read.csv(file_path)
   
