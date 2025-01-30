@@ -13,13 +13,11 @@ The R Journal
 Dear Professor,
 \bigskip
 
-We are pleased to submit our article, "datadriftR: An R Package for Concept Drift Detection in Predictive Models"", for consideration in The R Journal.
+We are pleased to submit our article, "datadriftR: An R Package for Concept Drift Detection in Predictive Models", for consideration in The R Journal.
 
-This manuscript introduces `datadriftR`, an R package designed to detect concept drift in predictive models. It presents Profile Drift Detection (PDD), a novel method that leverages Partial Dependence Profiles (PDPs) to identify and explain the causes of drift. By quantifying PDP changes with innovative metrics, PDD balances sensitivity and computational efficiency.
+This manuscript introduces `datadriftR`, an R package designed to detect concept drift in predictive models. It presents Profile Drift Detection (PDD), a novel method that leverages Partial Dependence Profiles (PDPs) to identify and explain the causes of drift. PDD balances sensitivity and computational efficiency by quantifying PDP changes with innovative metrics.
 
 Aligned with MLOps practices, `datadriftR` supports model monitoring and adaptive retraining in dynamic environments. Experiments on synthetic and real-world datasets demonstrate its effectiveness, showing that PDD outperforms existing drift detection methods while maintaining high accuracy and stability.
-
-The manuscript introduces the new package called `ToOoOlTiPs` which provides examples on how to use interactive graphics in journal articles, and general tips for making an interesting contribution.
 
 We believe this article will be valuable to The R Journal readership, as it provides a robust, explainable, and practical solution for managing concept drift in predictive modeling.
 
@@ -33,7 +31,7 @@ Regards,
     
 Ugur Dar  
 Department of Statistics  
-University of Eskisehir Technical University  
+Eskisehir Technical University  
 Eskisehir, Turkiye  
 ugurdarr@gmail.com
 
