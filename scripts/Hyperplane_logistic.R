@@ -224,15 +224,13 @@ run_drift_detection <- function(model_type, rf1, data_sudden, test_interval, inc
 
   list(mean_accuracy = mean_acc, drift_count = drift_number,runtime = runtime)
 }
-# Fonksiyonu çağırmak için örnek kullanım:
 result_hddm_a <- run_drift_detection("HDDM_A", rf1, data_sudden, test_interval, inc_size)
 result_hddm_w <- run_drift_detection("HDDM_W", rf1, data_sudden, test_interval, inc_size)
 result_kswin <- run_drift_detection("KSWIN", rf1, data_sudden, test_interval, inc_size)
 result_page_hinkley <- run_drift_detection("PageHinkley", rf1, data_sudden, test_interval, inc_size)
 result_ddm <- run_drift_detection("DDM", rf1, data_sudden, test_interval, inc_size)
 result_eddm <- run_drift_detection("EDDM", rf1, data_sudden, test_interval, inc_size)
-#
-#
+
 results_list <- list(
   HDDM_A = result_hddm_a,
   HDDM_W = result_hddm_w,
@@ -242,7 +240,6 @@ results_list <- list(
   EDDM = result_eddm
 )
 
-# Listeyi data.frame'e dönüştürün
 results_df <- do.call(rbind, lapply(names(results_list), function(name) {
   data.frame(Model = name,
              Mean_Accuracy = results_list[[name]]$mean_accuracy,
