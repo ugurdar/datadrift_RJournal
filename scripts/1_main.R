@@ -1,4 +1,5 @@
-library(foreign)
+# To run all experiments, please run only this script.
+source("scripts/2_utils.R")
 
 # Elec
 ## Logistic

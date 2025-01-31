@@ -1,6 +1,14 @@
+packages <- c("DALEX", "datadriftR", "rpart", "randomForest", "ggplot2",
+              "gridExtra", "MLmetrics", "foreign", "dplyr")
 
-packageurl <- "https://cran.r-project.org/src/contrib/Archive/randomForest/randomForest_4.7-1.tar.gz"
-# install.packages(packageurl, repos=NULL, type="source")
+missing_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
+
+if(length(missing_packages)) {
+  install.packages(missing_packages, dependencies = TRUE)
+}
+
+lapply(packages, require, character.only = TRUE)
+
 library(DALEX)
 library(datadriftR)
 library(rpart)
@@ -10,6 +18,8 @@ library(gridExtra)
 library(MLmetrics)
 library(foreign)
 library(dplyr)
+library(foreign)
+
 split_data_simple <- function(data,jj) {
   subset_size <- floor(nrow(data) / jj)
 

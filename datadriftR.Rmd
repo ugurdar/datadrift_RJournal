@@ -325,12 +325,12 @@ Statistical tests verified whether the response variable was correctly predicted
 
 Tables~\ref{tab:exp_SEA}-\ref{tab:exp_Friedman} summarize the drift detection methods, batch numbers, test-train sizes, detected drifts and model performance. Large batch sizes may miss drifts, while small sizes may cause false detections, making optimal batch size selection critical.
 
-Additional details on batch sizes (Table~\ref{tab:batch_number}), key variables (Table~\ref{tab:vip_batch}) and model accuracy (Table~\ref{tab:acc_batch}) are provided end of the paper.
+Additional details on batch sizes (Table~\ref{tab:batch_number}), key variables (Table~\ref{tab:vip_batch}) and model accuracy (Table~\ref{tab:acc_batch}) are provided in supplemantal materials section.
 
 ## Results
 
 
-In this section, the results of experiments conducted on the datasets---\texttt{SEA}, \texttt{Hyperplane}, \texttt{NOAA}, \texttt{Ozone}, \texttt{Elec2} and \texttt{Friedman}---are summarized. The methods' performance is evaluated based on accuracy and the number of detected drifts (\texttt{\#drifts}).
+In this section, the results of experiments conducted on the     datasets---\texttt{SEA}, \texttt{Hyperplane}, \texttt{NOAA}, \texttt{Ozone}, \texttt{Elec2} and \texttt{Friedman}---are summarized. The methods' performance is evaluated based on accuracy and the number of detected drifts (\texttt{\#drifts}).
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
